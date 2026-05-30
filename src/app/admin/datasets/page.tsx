@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { useAdmin } from '@/contexts/AdminContext'
 import { useDataset } from '@/contexts/DatasetContext'
 import { useCovers } from '@/contexts/CoversContext'
+import { useMusic } from '@/contexts/MusicContext'
 import { useI18n } from '@/contexts/I18nContext'
 import { PageHeader } from '@/components/layout/PageShell'
 import { DatasetList } from './DatasetList'
@@ -11,6 +12,7 @@ export default function DatasetsPage() {
   const { isAdmin } = useAdmin()
   const { genres, coverTypes, setGenres, setCoverTypes } = useDataset()
   const { countUsing, clearDatasetValue } = useCovers()
+  const { countGenreUsage, clearGenre } = useMusic()
   const { t } = useI18n()
 
   // Guard — redirect non-admins
@@ -28,9 +30,10 @@ export default function DatasetsPage() {
         description={t.datasets.genresDescription}
         items={genres}
         onChange={setGenres}
-        getUsage={value => countUsing('style', value)}
-        onDeleteValue={value => clearDatasetValue('style', value)}
-        usageNoun="cover"
+        // Genres are shared by covers AND releases — warn on either, allow anyway.
+        getUsage={value => countUsing('style', value) + countGenreUsage(value)}
+        onDeleteValue={value => { clearDatasetValue('style', value); clearGenre(value) }}
+        usageNoun="item"
         data-testid="dataset-genres"
       />
 

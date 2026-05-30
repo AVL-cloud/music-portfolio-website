@@ -1,6 +1,6 @@
 # Technical Specification — sonicwavestudio.com
 
-> Last updated: 2026-05-30 (auth/session, contact requests + digest, dataset cascade delete)
+> Last updated: 2026-05-30 (music + gear pages, favourites/pinning contexts, music + pages contexts, covers CRUD + pagination pref, page visibility)
 > Status: draft — see "Implementation Status" at the end
 
 ---
@@ -289,13 +289,33 @@ Single-row table (id=1) — admin-editable rich text shown on Home.
 
 **Music-specific** (`src/components/music/`)
 - `MusicPlayer` — embedded audio player (track list, play/pause, progress)
-- `ReleaseCard` — artwork, title, date, streaming links, story excerpt
-- `CoverCard` — embedded video, title, band, style tags, fav button
+- `PlayerAdminControls` — admin edit-mode panel to show/hide the player and reorder/hide its tracks (writes `MusicContext`)
+- `ReleaseCard` — artwork (links to DistroKid hyperfollow), title, year + genre labels, story excerpt, favourite + pin badge + pinned-reorder controls, and an in-place genre tag editor in edit mode
+- `ReleaseTagEditor` — admin multi-select of genre tags from the Genres dataset
+- `CoverCard` — embedded video or placeholder, title, band, description, style/type/instrument tags (label-resolved), fav button
+- `CoverFormModal` — admin add/edit dialog for a cover (genre/type from datasets, instruments, embed URL, video date)
+- `GearCard` — photo or placeholder, category badge, name, description
 - `TabRow` — single row in the tabs list: title, band, style, access badge, download/buy button
-- `GearItem` — photo, name, brand, description
+- `GearItem` — (legacy) photo, name, brand, description
 - `CourseCard` — thumbnail, title, progress indicator (member)
 - `SectionViewer` — Tiptap read-only renderer with fav anchor button
 - `PersonalNote` — admin-editable rich text block with inline edit toggle
+
+**Layout (additions)**
+- `PageVisibilityGate` — wraps page content; renders an "unavailable" notice to visitors for an admin-disabled page, or a "hidden from visitors" banner + content for admins
+
+### 5.2.1 React Contexts (`src/contexts/`)
+
+Client state, each backed by `localStorage` until the D1 migration:
+
+- `AdminContext` — `isAdmin` (from session) + `editMode` toggle
+- `I18nContext` — locale + translations (en/fr)
+- `DatasetContext` (`swc-datasets`) — managed **Genres** + **Cover types** lists (slug/label)
+- `CoversContext` (`swc-covers`) — covers list + `addCover`/`updateCover`/`deleteCover` + dataset usage/cascade
+- `MusicContext` (`swc-music`) — release genre overrides (+ usage/clear for the dataset cascade) and the "Listen" player config (visible, track order, hidden tracks)
+- `FavouritesContext` (`swc-favourites`) — per-browser favourites keyed `type:id`; login-gated toggling; ordered list per type with `moveFavourite` for user-ordered pinning
+- `PagesContext` (`swc-pages`) — admin page-visibility (stores disabled page keys)
+- `NotificationContext` — in-app notifications
 
 **Layout** (`src/components/layout/`)
 - `Header` — nav, socials, auth button; variant: default / hero (front page)
@@ -383,7 +403,7 @@ Local development: `.env.local` (gitignored)
 | Phase | Scope | Status |
 |---|---|---|
 | **1 — Foundation** | Design tokens, CSS system, Header, Footer, PageShell, all base UI components with data-testid, ThemeToggle, theme persistence | 🔲 todo |
-| **2 — Content pages** | Music, Covers (filters + pagination), Gear, About — D1-backed | 🔲 todo |
+| **2 — Content pages** | Music, Covers (filters + pagination), Gear, About — D1-backed | 🟡 Music, Covers, Gear built on localStorage-backed contexts (D1 pending); favourites + page-visibility added |
 | **3 — Auth + Members** | registration, login, forgot/reset password, Preferences (username/password), session, admin guard | 🟡 done with custom cookie/JWT auth (not NextAuth); stores are dev JSON pending D1 |
 | **4 — Tabs + Payments** | Tab list, upload, access model, Stripe checkout | 🔲 todo |
 | **5 — Courses** | Course index, chapter/section viewer, Tiptap editor (admin) | 🔲 todo |
@@ -427,7 +447,27 @@ What is actually built and how it diverges from the target stack. **Update befor
 
 ### Datasets / covers
 
-- Covers moved from static mock to a mutable `CoversContext` (localStorage). Deleting a dataset value cascades removal from covers via `clearDatasetValue()` / `countUsing()`.
+- Covers moved from static mock to a mutable `CoversContext` (localStorage), seeded from the live site, with `addCover`/`updateCover`/`deleteCover`. Deleting a Genres value now cascades across **covers and releases** (`clearDatasetValue()`/`countUsing()` + `MusicContext.clearGenre()`/`countGenreUsage()`).
+- Covers page: per-page selector (6/12/24, default 6) persisted to `swc-covers-perpage` for logged-in users; grid ordered by `videoDate` desc; admin add/edit/delete via `CoverFormModal`.
+
+### Music page (this session)
+
+- `src/lib/music.ts` — static release + track data. Release `genres` are **Genres-dataset slugs**; labels resolved for display. Each release carries a `hyperfollowUrl` (DistroKid) used to link the cover art. Real release dates from Deezer/Spotify.
+- Audio: source WAVs transcoded to **AAC `.m4a`** (via `afconvert`) under `public/music/`; cover art resized (via `sips`) to 1000² there too. Asset files committed (no R2 yet).
+- `MusicContext` (`swc-music`) holds admin genre overrides and the player config (visibility, track order, hidden tracks). `FavouritesContext` provides login-gated favouriting, pin order, and `moveFavourite` for user-ordered pinning.
+
+### Gear page (this session)
+
+- `src/lib/gear.ts` — items grouped by `section` (instruments/software/hardware), images under `public/gear/`, `placeholder` entries render a "photo coming soon" card.
+
+### Page visibility (this session)
+
+- `PagesContext` (`swc-pages`) stores admin-disabled page keys. `PageVisibilityGate` (in the root layout, inside the providers) maps `pathname → PageKey` and gates rendering: non-admin + disabled → "unavailable" notice; admin → content + "hidden" banner. The `Header` filters disabled pages for visitors and marks them for admins. Admin UI at `/admin/pages`.
+- **Caveat**: visibility is client-side (localStorage), so a hidden page is not server-blocked — fine for the current "soft hide" intent; enforce server-side when this moves to D1.
+
+### New localStorage keys (this session)
+
+`swc-music`, `swc-favourites`, `swc-pages`, `swc-covers-perpage` (in addition to existing `swc-covers`, `swc-datasets`, `swc-theme`).
 
 ### Env vars introduced
 

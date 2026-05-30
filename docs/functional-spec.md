@@ -1,6 +1,6 @@
 # Functional Specification — sonicwavestudio.com
 
-> Last updated: 2026-05-30 (auth, member preferences + contact log, admin contact requests + digest, dataset cascade delete)
+> Last updated: 2026-05-30 (gear page, music page + releases, login-gated favourites with pinning/reorder, admin release-tag/player editing, covers seeding + pagination preference, real socials + DistroKid links, admin page enable/disable)
 > Status: draft — see §10 Implementation Status
 
 ---
@@ -29,8 +29,8 @@ The reference aesthetic is antoinevlieghemusic.com: clean, spacious, image-forwa
 
 ### 3.1 Header (global)
 - Site title / logo
-- Main navigation: Home · Music · Covers · Tabs · Courses · Gear · About
-- Social icons: Spotify, Apple Music, YouTube, Deezer, Instagram, TikTok
+- Main navigation: Home · Music · Covers · Tabs · Courses · Gear · About · Contact (admin can hide individual pages — see §3.16)
+- Social icons (real profile links): Spotify, Apple Music, YouTube, YouTube Music, Deezer, Instagram, TikTok
 - Login / Sign up button (if not logged in)
 - User avatar + dropdown (if logged in): Favourites · Preferences · Sign out
 - On the front page the header is larger (full-height hero treatment)
@@ -56,15 +56,19 @@ Featured content cards, e.g.:
 - Upcoming / pinned content
 
 ### 3.5 Music (`/music`)
-- List of releases (EP, singles, albums)
-- Each release: artwork, title, date, streaming links, and Antoine's personal story behind it
-- Embedded audio player per release
+- **"Listen" player** at the top: a single audio player with the mastered tracks. In admin edit mode the player can be **shown/hidden** and its tracks **reordered or individually hidden** (see §6).
+- **Releases grid** (EP, singles, albums), each: artwork, title, release year, genre tags (from the managed Genres dataset), and Antoine's personal story.
+- **Clicking a release's cover art opens its DistroKid hyperfollow link** (listen / pre-save) in a new tab.
+- **Favourites**: a heart on each release. Favouriting while logged out redirects to login (`/login?next=…`). Favourited releases are **pinned to the top**; non-favourited ones stay ordered by release date.
+- **Pinned ordering**: a logged-in user can reorder their pinned releases with up/down controls; the order is saved as a personal preference.
+- Admin edit mode: edit each release's **genre tags** (multi-select from the managed Genres dataset — same source as covers).
 
 ### 3.6 Covers (`/covers`)
-- Paginated list of all covers (card grid)
-- Each cover: embedded video (vertical/portrait format), title, band/artist, genre tags, cover tags, instruments, links to same cover on socials, favourite button
-- Filter bar: genre · band name · title search · cover type · cover tags · instruments
-- Sort: newest / oldest
+- Paginated list of all covers (card grid), **ordered by video date (newest first)**
+- Each cover: embedded video (vertical/portrait format) or a "video coming soon" placeholder until uploaded, title, band/artist, description, genre tag, cover-type tag, instruments, links to same cover on socials, favourite button
+- Filter bar: genre · band name · title search · cover type
+- **Per-page selector: 6 / 12 / 24, defaulting to 6.** For a logged-in user the chosen value is saved as a personal preference.
+- Covers are **seeded** from antoinevlieghemusic.com (band/title/description); videos and dates are added later in admin edit mode.
 
 #### Admin — "+ Add Cover" modal
 Visible only to admin, appears as an action button in the page header.
@@ -104,8 +108,9 @@ Same layout as the public view but with the "+ Add Cover" button in the page hea
 - **Member** can read; visitors see a preview with a login prompt
 
 ### 3.9 Gear (`/gear`)
-- Descriptive list of Antoine's gear: guitars, amps, pedals, recording equipment
-- Each item: photo, name, brand, description, optional purchase link
+- Gear grouped into three sections: **Instruments**, **Software**, **Hardware**
+- Each item: photo (or "photo coming soon" placeholder), name, category, description
+- Items sourced from antoinevlieghemusic.com; placeholder entries exist for gear not yet documented (e.g. nylon guitar, keyboard, plugins, second mic, studio headset)
 
 ### 3.10 About (`/about`)
 - Bio
@@ -193,6 +198,14 @@ Same layout as the public view but with the "+ Add Cover" button in the page hea
 
 ---
 
+## 3.16 Page visibility (Admin)
+- Admin console page `/admin/pages` (linked from the AdminBar) lists every managed page: Music, Covers, Tabs, Courses, Gear, About, Contact.
+- Each page has a **Visible / Hidden** toggle.
+- A **hidden** page is removed from the navigation for visitors and returns an "Page unavailable" notice if reached directly.
+- The page **remains visible and editable for admins**, who see it in the nav marked with a "hidden" icon and a banner ("This page is hidden from visitors") at the top of the page.
+
+---
+
 ## 6. Content Management (Admin)
 
 All admin actions are done in-context — no separate `/admin` dashboard. Each page has an "Edit mode" toggle visible only to the admin:
@@ -259,7 +272,33 @@ This section tracks what is actually built versus the target above. Update it be
 
 ### Datasets (admin) — implemented
 
-- Deleting a managed dataset value (genre / cover type) that is **in use** warns the admin (e.g. "Used by 3 covers — deleting removes this tag from them.") and, on confirm, **cascades** the removal from every cover using it.
+- Deleting a managed dataset value (genre / cover type) that is **in use** warns the admin and, on confirm, **cascades** the removal from everywhere it's used. Genres are shared by **covers and releases** — the usage count and cascade now span both ("Used by N items — Delete anyway").
+
+### Music page — implemented (this session)
+
+- **Releases** (`src/lib/music.ts`) with real artwork, real streaming **release dates** (from Deezer/Spotify), genre **slugs from the Genres dataset**, story excerpts, and **DistroKid hyperfollow URLs**. Clicking a cover opens the hyperfollow link. Includes "On The Rim Of The Sky" (first release, 2021).
+- **"Listen" player** streams the mastered tracks (WAV → AAC `.m4a` under `public/music/`).
+- **Favourites are login-gated** (`FavouritesContext`): toggling while logged out redirects to `/login?next=…`. Favourited releases **pin to the top**; the rest stay ordered by date.
+- **Pinned releases are reorderable** by logged-in users (up/down), saved as a per-browser preference.
+- Admin edit mode: edit release **genre tags** (multi-select from the Genres dataset) and control the **player** (show/hide, reorder tracks, hide individual tracks) — both persisted in `MusicContext`.
+
+### Gear page — implemented (this session)
+
+- `/gear` grouped into **Instruments / Software / Hardware** (`src/lib/gear.ts`), real images under `public/gear/`, with placeholder entries for undocumented gear.
+
+### Covers — extended (this session)
+
+- Seeded with the real covers from antoinevlieghemusic.com (band/title/description; video + date added later in edit mode).
+- **Editable in admin mode**: add / edit / delete via `CoverFormModal` (`CoversContext` CRUD).
+- **Pagination 6 / 12 / 24, default 6**, saved as a preference for logged-in users; grid **ordered by video date**.
+
+### Page visibility (admin) — implemented (this session)
+
+- `/admin/pages` toggles per-page visibility (`PagesContext`, localStorage). Hidden pages drop from the nav and return an "unavailable" notice to visitors, while admins keep full access with a "hidden" banner. See §3.16.
+
+### Header socials — corrected (this session)
+
+- Real profile URLs for Spotify, Apple Music, YouTube, **YouTube Music**, **Deezer**, Instagram, TikTok (the last two were previously placeholders).
 
 ### Divergences from the target spec
 

@@ -42,6 +42,36 @@ export const fr: Translations = {
     datasetsDescription: 'Gérez les listes de référence utilisées sur le site.',
   },
 
+  music: {
+    title: 'Musique',
+    description: 'Mes sorties originales — EP et albums entre rock, pop et instrumental.',
+    latestTracks: 'Écouter',
+    latestTracksHint: 'Une sélection de morceaux masterisés de mes sorties.',
+    releases: 'Sorties',
+    pinned: 'Épinglé',
+    addTag: 'Ajouter un tag',
+    addTagPlaceholder: 'Ajouter un tag…',
+    playerVisibility: 'Lecteur',
+    playerShown: 'Visible',
+    playerHidden: 'Masqué',
+    showInPlayer: 'Afficher dans le lecteur',
+    hideFromPlayer: 'Masquer du lecteur',
+    moveUp: 'Monter',
+    moveDown: 'Descendre',
+    playerHiddenNote: 'Le lecteur est masqué pour les visiteurs.',
+  },
+
+  pages: {
+    adminTitle: 'Pages',
+    adminDescription: 'Afficher ou masquer des pages du site. Les pages masquées restent visibles et modifiables pour les admins.',
+    adminHint: 'Les pages masquées sont retirées de la navigation et renvoient un message « indisponible » aux visiteurs.',
+    visible: 'Visible',
+    hidden: 'Masquée',
+    unavailableTitle: 'Page indisponible',
+    unavailableBody: "Cette page n'est pas disponible pour le moment. Revenez plus tard.",
+    hiddenBanner: 'Cette page est masquée pour les visiteurs — seuls les admins la voient.',
+  },
+
   covers: {
     title: 'Reprises',
     description: 'Mes chansons préférées, réinterprétées.',
@@ -54,6 +84,7 @@ export const fr: Translations = {
     coverCount: (n, total) =>
       `${n} reprise${n !== 1 ? 's' : ''}${n !== total ? ` · ${total} au total` : ''}`,
     addCover: 'Ajouter une reprise',
+    perPage: 'Par page',
   },
 
   courses: {
@@ -64,6 +95,14 @@ export const fr: Translations = {
     duration: 'Durée',
     level: 'Niveau',
     noTranslation: "Ce contenu n'est disponible qu'en français.",
+  },
+
+  gear: {
+    title: 'Matériel',
+    description: 'Les instruments, logiciels et matériels derrière mon son.',
+    instruments: 'Instruments',
+    software: 'Logiciels',
+    hardware: 'Matériel',
   },
 
   contact: {

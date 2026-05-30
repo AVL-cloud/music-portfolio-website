@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Settings2, Eye, Pencil, ChevronDown, Database, Languages, Inbox } from 'lucide-react'
+import { Settings2, Eye, Pencil, ChevronDown, Database, Languages, Inbox, Files } from 'lucide-react'
 import { useAdmin } from '@/contexts/AdminContext'
 import { useI18n } from '@/contexts/I18nContext'
 import { cn } from '@/lib/utils'
@@ -38,6 +38,15 @@ export function AdminBar() {
         >
           <Database className="h-3 w-3" />
           {t.admin.datasets}
+        </Link>
+
+        <Link
+          href="/admin/pages"
+          data-testid="admin-bar-pages-link"
+          className="inline-flex items-center gap-1 text-white/80 hover:text-white transition-colors"
+        >
+          <Files className="h-3 w-3" />
+          {t.pages.adminTitle}
         </Link>
 
         <Link
