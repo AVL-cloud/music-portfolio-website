@@ -1,6 +1,7 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
-import { Bell, Check } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { Bell, X } from 'lucide-react'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -16,31 +17,40 @@ function relativeTime(date: Date) {
 }
 
 export function NotificationBell() {
-  const { notifications, unreadCount, markRead, markAllRead } = useNotifications()
+  const { notifications, unreadCount, markRead } = useNotifications()
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
+  // Close on Escape
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
   }, [])
 
-  const handleClick = (id: string, link?: string) => {
+  // Prevent body scroll while panel is open
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
+  const handleNotificationClick = (id: string, link?: string) => {
     markRead(id)
     setOpen(false)
     if (link) router.push(link)
   }
 
   return (
-    <div ref={ref} className="relative">
+    <>
+      {/* Bell button */}
       <button
         onClick={() => setOpen(o => !o)}
         data-testid="notification-bell"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+        aria-expanded={open}
         className={cn(
           'relative flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)]',
           'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] transition-colors',
@@ -58,57 +68,99 @@ export function NotificationBell() {
         )}
       </button>
 
-      {open && (
-        <div
-          data-testid="notification-dropdown"
-          className="absolute right-0 top-full mt-2 w-80 rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-lg)] overflow-hidden z-50"
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
-            <h3 className="text-sm font-semibold text-[var(--color-text)]">Notifications</h3>
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllRead}
-                className="flex items-center gap-1 text-xs text-[var(--color-accent-1)] hover:underline"
-              >
-                <Check className="h-3 w-3" /> Mark all read
-              </button>
-            )}
-          </div>
+      {typeof document !== 'undefined' && createPortal(
+        <>
+          {/* Backdrop */}
+          {open && (
+            <div
+              className="fixed inset-0 z-[9998] bg-black/25 backdrop-blur-[2px]"
+              onClick={() => setOpen(false)}
+              aria-hidden="true"
+            />
+          )}
 
-          {/* List */}
-          <div className="max-h-80 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <p className="px-4 py-6 text-sm text-center text-[var(--color-text-muted)]">No notifications yet</p>
-            ) : (
-              notifications.map(n => (
-                <button
-                  key={n.id}
-                  onClick={() => handleClick(n.id, n.link)}
-                  data-testid={`notification-item-${n.id}`}
-                  className={cn(
-                    'w-full flex items-start gap-3 px-4 py-3 text-left border-b border-[var(--color-border)] last:border-0 transition-colors',
-                    n.read
-                      ? 'hover:bg-[var(--color-surface-raised)]'
-                      : 'bg-[var(--color-accent-1-subtle)] hover:bg-[var(--color-accent-1-subtle)]',
-                  )}
-                >
-                  <div className="flex-1 min-w-0 space-y-0.5">
-                    <p className={cn('text-sm font-medium text-[var(--color-text)] truncate', !n.read && 'font-semibold')}>
-                      {n.title}
-                    </p>
-                    <p className="text-xs text-[var(--color-text-muted)] line-clamp-2">{n.body}</p>
-                    <p className="text-xs text-[var(--color-text-subtle)]">{relativeTime(n.createdAt)}</p>
-                  </div>
-                  {!n.read && (
-                    <span className="mt-1.5 shrink-0 h-2 w-2 rounded-full bg-[var(--color-accent-1)]" />
-                  )}
-                </button>
-              ))
+          {/* Side panel */}
+          <div
+            ref={panelRef}
+            data-testid="notification-panel"
+            role="dialog"
+            aria-label="Notifications"
+            className={cn(
+              'fixed right-0 top-0 z-[9999] h-full w-full max-w-sm flex flex-col',
+              'bg-[var(--color-surface)] border-l border-[var(--color-border)] shadow-[var(--shadow-xl)]',
+              'transform transition-transform duration-300 ease-in-out',
+              open ? 'translate-x-0' : 'translate-x-full',
             )}
+          >
+            {/* Panel header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)] shrink-0">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-semibold text-[var(--color-text)]">Notifications</h2>
+                {unreadCount > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-accent-1)] px-1.5 text-[10px] font-bold text-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                aria-label="Close notifications"
+                data-testid="notification-panel-close"
+                className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Notification list */}
+            <div className="flex-1 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3 px-6 py-16 text-center">
+                  <Bell className="h-10 w-10 text-[var(--color-text-muted)] opacity-30" />
+                  <p className="text-sm text-[var(--color-text-muted)]">No notifications yet</p>
+                </div>
+              ) : (
+                <ul>
+                  {notifications.map(n => (
+                    <li key={n.id}>
+                      <button
+                        onClick={() => handleNotificationClick(n.id, n.link)}
+                        data-testid={`notification-item-${n.id}`}
+                        className={cn(
+                          'w-full flex items-start gap-3 px-5 py-4 text-left border-b border-[var(--color-border)] last:border-0 transition-colors',
+                          n.read
+                            ? 'hover:bg-[var(--color-surface-raised)]'
+                            : 'bg-[var(--color-accent-1-subtle)] hover:brightness-[0.97]',
+                        )}
+                      >
+                        <span className={cn(
+                          'mt-1.5 shrink-0 h-2 w-2 rounded-full transition-colors',
+                          n.read ? 'bg-transparent' : 'bg-[var(--color-accent-1)]',
+                        )} />
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <p className={cn(
+                            'text-sm text-[var(--color-text)] truncate',
+                            n.read ? 'font-medium' : 'font-semibold',
+                          )}>
+                            {n.title}
+                          </p>
+                          <p className="text-xs text-[var(--color-text-muted)] line-clamp-2 leading-relaxed">
+                            {n.body}
+                          </p>
+                          <p className="text-xs text-[var(--color-text-subtle)]">
+                            {relativeTime(n.createdAt)}
+                          </p>
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
-        </div>
+        </>,
+        document.body,
       )}
-    </div>
+    </>
   )
 }

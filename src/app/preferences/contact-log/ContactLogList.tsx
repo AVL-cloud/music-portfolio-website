@@ -38,7 +38,7 @@ export function ContactLogList({ requests }: { requests: ContactRequest[] }) {
         Every message you've sent and any reply you've received.
       </p>
       {requests.map(req => (
-        <Card key={req.id} data-testid={`contact-log-${req.id}`}>
+        <Card key={req.id} id={`contact-log-${req.id}`} data-testid={`contact-log-${req.id}`}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-1 text-xs text-[var(--color-text-subtle)]">

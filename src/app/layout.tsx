@@ -10,6 +10,8 @@ import { I18nProvider } from '@/contexts/I18nContext'
 import { DatasetProvider } from '@/contexts/DatasetContext'
 import { CoversProvider } from '@/contexts/CoversContext'
 import { getSession } from '@/lib/auth/session'
+import { listNotificationsForUser } from '@/lib/notifications/store'
+import type { AppNotification } from '@/contexts/NotificationContext'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -31,6 +33,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const isAdmin = session?.role === 'admin'
   const user = session ? { name: session.username ?? session.email } : undefined
 
+  const rawNotifications = session ? await listNotificationsForUser(session.id) : []
+  const initialNotifications: AppNotification[] = rawNotifications.map(n => ({
+    id: n.id,
+    title: n.title,
+    body: n.body,
+    link: n.link,
+    read: n.read,
+    createdAt: new Date(n.createdAt),
+  }))
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="flex min-h-screen flex-col">
@@ -39,7 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <DatasetProvider>
               <CoversProvider>
               <AdminProvider isAdmin={isAdmin}>
-                <NotificationProvider isLoggedIn={isLoggedIn}>
+                <NotificationProvider initialNotifications={initialNotifications}>
                   <TooltipProvider>
                     <AdminBar />
                     <Header isLoggedIn={isLoggedIn} user={user} />
