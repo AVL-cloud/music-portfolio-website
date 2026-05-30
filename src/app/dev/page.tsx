@@ -55,7 +55,7 @@ export default function ComponentShowcase() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
-      <AdminBar isAdmin editMode={editMode} onEditModeToggle={setEditMode} />
+      <AdminBar />
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 py-12 space-y-14">
         <div>

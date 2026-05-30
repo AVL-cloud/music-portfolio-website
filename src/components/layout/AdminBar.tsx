@@ -1,15 +1,11 @@
 'use client'
 import { useState } from 'react'
 import { Settings2, Eye, Pencil, ChevronDown } from 'lucide-react'
+import { useAdmin } from '@/contexts/AdminContext'
 import { cn } from '@/lib/utils'
 
-interface AdminBarProps {
-  isAdmin?: boolean
-  editMode?: boolean
-  onEditModeToggle?: (value: boolean) => void
-}
-
-export function AdminBar({ isAdmin, editMode, onEditModeToggle }: AdminBarProps) {
+export function AdminBar() {
+  const { isAdmin, editMode, setEditMode } = useAdmin()
   const [collapsed, setCollapsed] = useState(false)
 
   if (!isAdmin) return null
@@ -32,7 +28,7 @@ export function AdminBar({ isAdmin, editMode, onEditModeToggle }: AdminBarProps)
         <span className="font-medium">Admin mode</span>
         <div className="flex items-center gap-2 ml-auto">
           <button
-            onClick={() => onEditModeToggle?.(!editMode)}
+            onClick={() => setEditMode(!editMode)}
             data-testid="admin-bar-edit-toggle"
             className={cn(
               'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors',

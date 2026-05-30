@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { Avatar } from '@/components/ui/Avatar'
+import { NotificationBell } from '@/components/ui/NotificationBell'
 import { cn } from '@/lib/utils'
 
 const NAV = [
@@ -15,6 +16,7 @@ const NAV = [
   { href: '/courses', label: 'Courses' },
   { href: '/gear',    label: 'Gear' },
   { href: '/about',   label: 'About' },
+  { href: '/contact', label: 'Contact' },
 ]
 
 const SOCIALS = [
@@ -26,9 +28,14 @@ const SOCIALS = [
 ]
 
 interface User { name?: string; image?: string | null }
-interface HeaderProps { hero?: boolean; user?: User | null; className?: string }
+interface HeaderProps {
+  hero?: boolean
+  user?: User | null
+  isLoggedIn?: boolean
+  className?: string
+}
 
-export function Header({ hero, user, className }: HeaderProps) {
+export function Header({ hero, user, isLoggedIn, className }: HeaderProps) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
@@ -78,19 +85,22 @@ export function Header({ hero, user, className }: HeaderProps) {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-1 ml-auto">
             <ThemeToggle compact />
-            {user ? (
-              <Link href="/favourites" data-testid="header-user-avatar">
-                <Avatar src={user.image} name={user.name} size="sm" />
-              </Link>
+            {isLoggedIn ? (
+              <>
+                <NotificationBell />
+                <Link href="/favourites" data-testid="header-user-avatar" className="ml-1">
+                  <Avatar src={user?.image} name={user?.name ?? 'Antoine'} size="sm" />
+                </Link>
+              </>
             ) : (
-              <Link href="/login" data-testid="header-login-button">
+              <Link href="/login" data-testid="header-login-button" className="ml-1">
                 <Button size="sm" variant="secondary">Sign in</Button>
               </Link>
             )}
             <button
-              className="md:hidden flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-raised)] transition-colors"
+              className="md:hidden flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-raised)] transition-colors ml-1"
               onClick={() => setOpen(o => !o)}
               aria-label="Menu"
               data-testid="header-mobile-menu"

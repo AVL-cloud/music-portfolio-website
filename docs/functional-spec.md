@@ -153,6 +153,46 @@ Same layout as the public view but with the "+ Add Cover" button in the page hea
 
 ---
 
+## 3.13 Contact (`/contact`)
+
+### Public / Member view
+- Form fields: **Name**, **Email**, **Message** (textarea)
+- Submit → success confirmation shown inline; message stored in DB
+- If the sender is a logged-in member, their account is linked to the message (enables website notifications when admin replies)
+
+### Admin view (same page, edit mode on)
+- List of received messages: sender name, email, date, message preview, reply status badge
+- Click any message → expanded view with full message text and a **Reply** textarea
+- Send reply:
+  - If the sender has a linked member account → creates an in-app notification for that user
+  - If the sender is a guest → (email notification, future scope)
+- Admin can mark messages as read / archive them
+
+---
+
+## 3.14 Notifications (logged-in members only)
+- Bell icon in the header, visible only when logged in
+- Badge shows count of unread notifications
+- Clicking bell opens a dropdown:
+  - List of notifications (newest first)
+  - Each item: title, short body, relative time, unread indicator dot
+  - Clicking an item: marks it as read, navigates to the linked content (e.g. contact reply thread)
+- Notifications are triggered when:
+  - Admin replies to a contact message the member submitted
+  - (Future: new course published, tab available for download, etc.)
+
+---
+
+## 3.15 Admin inline text editing
+- When admin edit mode is active, all major descriptive text blocks on every page become editable
+- Editing model: **plain text** for all content except course sections (which use Tiptap rich text)
+- Editable blocks include: page descriptions, personal note, release stories, gear item descriptions, cover titles/band names, tab titles, about page bio, etc.
+- UI: hover over any editable text → pencil icon appears → click → inline textarea replaces the text → Save / Cancel buttons
+- Changes are persisted via API call on Save
+- Course sections retain the existing Tiptap rich-text editor
+
+---
+
 ## 6. Content Management (Admin)
 
 All admin actions are done in-context — no separate `/admin` dashboard. Each page has an "Edit mode" toggle visible only to the admin:
