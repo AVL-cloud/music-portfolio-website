@@ -38,6 +38,15 @@ Running list of deferred tasks. Add items here instead of leaving them only as c
   `CoversContext` (localStorage) — see migration note above; instruments are still a static list.
 - [ ] Generalize cascade to other consumers when tabs/courses gain managed tags.
 
+## Covers player
+
+- [ ] **Enable full-screen** for the covers base player and mini-player. The `<video>` element's
+  `requestFullscreen()` call is already present in `MiniPlayer.tsx`; wire a Full screen button into
+  `CoverVideoPlayer.tsx` as well (same pattern: `videoRef.current?.requestFullscreen()`).
+- [ ] **Restrict Download to admin view only.** The Download button in `CoverVideoPlayer.tsx` and
+  `MiniPlayer.tsx` is currently visible to all users. Hide it behind `isAdmin` (from `useAdmin()`)
+  and remove the button entirely for non-admin visitors.
+
 ## General
 
 - [ ] Replace mock data: covers (`CoversContext` / localStorage), courses (`seed-courses.ts`) → database.

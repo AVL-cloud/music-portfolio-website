@@ -85,6 +85,7 @@ export const en: Translations = {
       `${n} cover${n !== 1 ? 's' : ''}${n !== total ? ` · ${total} total` : ''}`,
     addCover: 'Add cover',
     perPage: 'Per page',
+    filterLiked: 'Liked',
   },
 
   courses: {
