@@ -4,6 +4,7 @@ interface CardProps {
   className?: string
   children: React.ReactNode
   hover?: boolean
+  id?: string
   'data-testid'?: string
 }
 
@@ -12,9 +13,10 @@ interface SectionProps {
   children: React.ReactNode
 }
 
-export function Card({ className, children, hover, 'data-testid': testId }: CardProps) {
+export function Card({ className, children, hover, id, 'data-testid': testId }: CardProps) {
   return (
     <div
+      id={id}
       data-testid={testId}
       className={cn(
         'bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-lg)] overflow-hidden shadow-[var(--shadow-sm)]',

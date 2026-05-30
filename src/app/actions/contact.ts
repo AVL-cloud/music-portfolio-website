@@ -11,6 +11,7 @@ import {
   getContactRequest,
 } from '@/lib/contact/store'
 import { sendAdminContactDigest } from '@/lib/contact/digest'
+import { createNotification } from '@/lib/notifications/store'
 
 export type ActionResult =
   | { success: true }
@@ -83,8 +84,22 @@ export async function answerContactRequestAction(formData: FormData): Promise<Ac
 
   const updated = await answerContactRequest(parsed.data.id, parsed.data.answer, admin.email)
 
-  // Notify the sender by email (members also see it in their account).
   if (updated) {
+    const deepLink = `${process.env.NEXT_PUBLIC_BASE_URL ?? 'https://sonicwavestudio.com'}/preferences/contact-log#contact-log-${updated.id}`
+
+    // In-app notification for logged-in members
+    if (updated.userId) {
+      await createNotification({
+        userId: updated.userId,
+        type: 'contact_reply',
+        contactRequestId: updated.id,
+        title: 'Reply to your message',
+        body: updated.answer ?? '',
+        link: `/preferences/contact-log#contact-log-${updated.id}`,
+      })
+    }
+
+    // Email notification (all senders, members and guests alike)
     await sendEmail({
       to: updated.email,
       subject: 'Re: your message to Sonic Wave Studio',
@@ -92,7 +107,14 @@ export async function answerContactRequestAction(formData: FormData): Promise<Ac
         `Hi ${updated.name},\n\n` +
         `You wrote:\n${updated.message}\n\n` +
         `Reply from Sonic Wave Studio:\n${updated.answer}\n\n` +
+        `View your conversation: ${deepLink}\n\n` +
         `— Sonic Wave Studio`,
+      html:
+        `<p>Hi ${updated.name},</p>` +
+        `<blockquote><em>You wrote:</em><br>${updated.message.replace(/\n/g, '<br>')}</blockquote>` +
+        `<p><strong>Reply from Sonic Wave Studio:</strong><br>${(updated.answer ?? '').replace(/\n/g, '<br>')}</p>` +
+        `<p><a href="${deepLink}">View your conversation →</a></p>` +
+        `<p>— Sonic Wave Studio</p>`,
     })
   }
 
