@@ -13,6 +13,7 @@ export interface Translations {
     about: string
     contact: string
     signIn: string
+    signOut: string
     menu: string
   }
 

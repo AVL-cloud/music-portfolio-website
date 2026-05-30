@@ -1,7 +1,7 @@
 # Technical Specification — sonicwavestudio.com
 
-> Last updated: 2026-05-30
-> Status: draft
+> Last updated: 2026-05-30 (auth/session, contact requests + digest, dataset cascade delete)
+> Status: draft — see "Implementation Status" at the end
 
 ---
 
@@ -384,7 +384,7 @@ Local development: `.env.local` (gitignored)
 |---|---|---|
 | **1 — Foundation** | Design tokens, CSS system, Header, Footer, PageShell, all base UI components with data-testid, ThemeToggle, theme persistence | 🔲 todo |
 | **2 — Content pages** | Music, Covers (filters + pagination), Gear, About — D1-backed | 🔲 todo |
-| **3 — Auth + Members** | NextAuth, registration, login, Preferences, session, admin guard | 🔲 todo |
+| **3 — Auth + Members** | registration, login, forgot/reset password, Preferences (username/password), session, admin guard | 🟡 done with custom cookie/JWT auth (not NextAuth); stores are dev JSON pending D1 |
 | **4 — Tabs + Payments** | Tab list, upload, access model, Stripe checkout | 🔲 todo |
 | **5 — Courses** | Course index, chapter/section viewer, Tiptap editor (admin) | 🔲 todo |
 | **6 — Favourites** | Favourite button on all content, /favourites page, deep anchors | 🔲 todo |
@@ -399,3 +399,40 @@ Local development: `.env.local` (gitignored)
 - **Single admin forever** — if this changes, revisit the role model before opening registration
 - **D1 is eventually consistent on replicas** — use `{ consistency: "strong" }` for write-then-read patterns (purchases, auth)
 - **R2 signed URLs** — tab file downloads go through a signed R2 URL with a short TTL, never exposed directly
+
+---
+
+## 11. Implementation Status (updated 2026-05-30)
+
+What is actually built and how it diverges from the target stack. **Update before each PR.**
+
+### Auth & sessions
+
+- Custom implementation (NextAuth v5 not used yet). Key files under `src/lib/auth/`:
+  - `password.ts` — **PBKDF2-SHA256** (100k iterations) via Web Crypto (edge-safe, no native deps), timing-safe compare. Format `pbkdf2:<salt>:<key>` (base64url).
+  - `session.ts` — **HS256 JWT in an HTTP-only cookie** (`swc-session`, 7-day), signed with `JWT_SECRET` (dev fallback if unset). `getSession()` reads it server-side.
+  - `user-store.ts`, `reset-tokens.ts` — **dev JSON stores** in `.data/` (gitignored). Function signatures are the D1 abstraction boundary.
+  - `seed-admin.ts` — seeds/syncs the bootstrap admin from env on demand.
+- Server actions in `src/app/actions/auth.ts`: login, register, logout, forgot/reset password, update username, update password.
+
+### Admin credentials — security
+
+- The admin password is **never stored in clear**. `.env.local` holds only `ADMIN_PASSWORD_HASH` (PBKDF2). Rotate with `node scripts/hash-password.mjs '<pw>'`. `ADMIN_EMAIL` identifies the bootstrap admin; `ADMIN_EMAILS` (CSV) grants admin role on register.
+
+### Contact requests + digest
+
+- `src/lib/contact/store.ts` — dev JSON store (`.data/contact-requests.json`). Member-facing `status` is `open|answered`; admin archive is a separate `archivedByAdmin` flag (never alters the member view).
+- `src/lib/contact/digest.ts` — `sendAdminContactDigest()` (weekly count + admin link). Manual trigger via admin page action; scheduled endpoint `GET /api/cron/contact-digest` (guard with `CRON_SECRET`; wire a Cloudflare Cron Trigger).
+- `src/lib/email/send.ts` — email abstraction; **logs to console in dev**, set `EMAIL_PROVIDER` (+ key) for real sending (Resend wiring stubbed).
+
+### Datasets / covers
+
+- Covers moved from static mock to a mutable `CoversContext` (localStorage). Deleting a dataset value cascades removal from covers via `clearDatasetValue()` / `countUsing()`.
+
+### Env vars introduced
+
+`JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `ADMIN_EMAILS`, `EMAIL_PROVIDER`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_BASE_URL`.
+
+### Pending migration
+
+All dev JSON/localStorage stores → **Cloudflare D1 + Drizzle**; console email → real provider; cron endpoint → real schedule. Tracked in `TODO.md`.

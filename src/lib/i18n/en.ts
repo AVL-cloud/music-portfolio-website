@@ -12,6 +12,7 @@ export const en: Translations = {
     about: 'About',
     contact: 'Contact',
     signIn: 'Sign in',
+    signOut: 'Sign out',
     menu: 'Menu',
   },
 

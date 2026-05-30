@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Settings2, Eye, Pencil, ChevronDown, Database, Languages } from 'lucide-react'
+import { Settings2, Eye, Pencil, ChevronDown, Database, Languages, Inbox } from 'lucide-react'
 import { useAdmin } from '@/contexts/AdminContext'
 import { useI18n } from '@/contexts/I18nContext'
 import { cn } from '@/lib/utils'
@@ -47,6 +47,15 @@ export function AdminBar() {
         >
           <Languages className="h-3 w-3" />
           Translations
+        </Link>
+
+        <Link
+          href="/admin/contact-requests"
+          data-testid="admin-bar-contact-link"
+          className="inline-flex items-center gap-1 text-white/80 hover:text-white transition-colors"
+        >
+          <Inbox className="h-3 w-3" />
+          Contact requests
         </Link>
 
         <div className="flex items-center gap-2 ml-auto">

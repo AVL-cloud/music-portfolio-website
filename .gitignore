@@ -1,4 +1,5 @@
 node_modules/
+.data/
 playwright-report/
 test-results/
 .env
@@ -6,3 +7,6 @@ test-results/
 .next/
 .open-next/
 .wrangler/
+.claude/
+memory/
+tsconfig.tsbuildinfo

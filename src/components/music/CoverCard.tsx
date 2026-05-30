@@ -33,8 +33,8 @@ export function CoverCard({ cover, isFaved, onFavToggle }: CoverCardProps) {
         <h3 className="font-semibold text-[var(--color-text)] mb-0.5">{cover.title}</h3>
         <p className="text-sm text-[var(--color-text-muted)] mb-2">{cover.bandName}</p>
         <div className="flex flex-wrap gap-1.5 mb-3">
-          <Badge variant="accent1">{cover.style}</Badge>
-          <Badge variant="neutral">{cover.coverType}</Badge>
+          {cover.style && <Badge variant="accent1">{cover.style}</Badge>}
+          {cover.coverType && <Badge variant="neutral">{cover.coverType}</Badge>}
           {cover.instruments.map(i => <Badge key={i} variant="neutral">{i}</Badge>)}
         </div>
         {cover.socialLinks && (
