@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/layout/PageShell'
 import { useI18n } from '@/contexts/I18nContext'
 import { useAdmin } from '@/contexts/AdminContext'
 import { useFavourites } from '@/contexts/FavouritesContext'
+import { usePendingFavourite } from '@/contexts/usePendingFavourite'
 import { useMusic } from '@/contexts/MusicContext'
 import { useDataset } from '@/contexts/DatasetContext'
 
@@ -19,6 +20,7 @@ function byDateDesc(a: { releaseDate?: string }, b: { releaseDate?: string }) {
 }
 
 export function MusicClient() {
+  usePendingFavourite()
   const { t } = useI18n()
   const { isAdmin, editMode } = useAdmin()
   const { isLoggedIn, isFaved, toggleFavourite, favedIdsOf, moveFavourite } = useFavourites()

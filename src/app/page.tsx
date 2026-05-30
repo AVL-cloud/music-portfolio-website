@@ -1,13 +1,16 @@
 import Link from 'next/link'
-import { ArrowRight, Music, Video, BookOpen, Guitar } from 'lucide-react'
+import { ArrowRight, Music, Video, BookOpen, Guitar, Settings2, User } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
+import { HeroCarousel } from '@/components/layout/HeroCarousel'
 
 const SECTIONS = [
   { href: '/music',   Icon: Music,    label: 'Music',   description: 'Releases, EPs, and the stories behind them.' },
   { href: '/covers',  Icon: Video,    label: 'Covers',  description: 'Video covers of songs I love.' },
   { href: '/courses', Icon: BookOpen, label: 'Courses', description: 'Guitar and music production lessons.' },
-  { href: '/tabs',    Icon: Guitar,   label: 'Tabs',    description: 'Guitar Pro and PDF tabs to download.' },
+  { href: '/tabs',    Icon: Guitar,    label: 'Tabs',  description: 'Guitar Pro and PDF tabs to download.' },
+  { href: '/gear',    Icon: Settings2, label: 'Gear',  description: 'The instruments and equipment I use.' },
+  { href: '/about',   Icon: User,      label: 'About', description: 'Who I am, my story, and how to reach me.' },
 ]
 
 export default function FrontPage() {
@@ -36,11 +39,7 @@ export default function FrontPage() {
           </div>
         </div>
 
-        {/* Decorative gradients */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-          <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[600px] w-[600px] rounded-full bg-[var(--color-accent-1)] opacity-[0.04] blur-3xl" />
-          <div className="absolute top-20 right-10 h-[300px] w-[300px] rounded-full bg-[var(--color-accent-2)] opacity-[0.04] blur-3xl" />
-        </div>
+        <HeroCarousel />
       </section>
 
       {/* Explore sections */}

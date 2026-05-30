@@ -35,17 +35,20 @@ npm run test:nrt         # Smoke + pages + interactions + courses (chromium)
 | `src/app/` | Next.js App Router. Route groups `(public)/(member)/(admin)` are planned but not yet applied. |
 | `src/components/ui/` | Base design-system components (Button, Card, Dialog, Input…) |
 | `src/components/music/` | Portfolio-specific components (CoverCard, ReleaseCard, GearCard, MusicPlayer…) |
-| `src/components/layout/` | Header, Footer, AdminBar, PageShell, PageVisibilityGate |
-| `src/contexts/` | Client state (AdminContext, CoversContext, MusicContext, FavouritesContext, PagesContext, DatasetContext, NotificationContext) |
+| `src/components/layout/` | Header, Footer, AdminBar, PageShell, PageVisibilityGate, HeroCarousel |
+| `src/components/ui/` | Base components + `RichTextEditor` (TipTap-based) |
+| `src/contexts/` | Client state (AdminContext, CoversContext, MusicContext, FavouritesContext, PagesContext, DatasetContext, NotificationContext) + `usePendingFavourite` hook |
 | `src/lib/` | Pure helpers — auth, db, i18n, gear, music, courses |
 | `src/styles/tokens.css` | All CSS custom properties |
 | `docs/` | Functional and technical specs — update before every PR |
 
 ### Current state
 - Auth: custom JWT cookie (`swc-session`, HS256). `IS_ADMIN`/`IS_LOGGED_IN` derive from the real session, not env flags.
-- Data stores: localStorage-backed contexts (covers, music, datasets, favourites, pages) + JSON files under `.data/` (users, notifications, contact requests). Both pending Cloudflare D1 + Drizzle migration.
-- File assets: audio (`.m4a`) and images under `public/music/` and `public/gear/`. Will move to R2.
+- Data stores: localStorage-backed contexts (covers, music, datasets, favourites, pages, about) + JSON files under `.data/` (users, notifications, contact requests). Both pending Cloudflare D1 + Drizzle migration.
+- File assets: audio (`.m4a`) and images under `public/music/`, `public/gear/`, and `public/hero/` (carousel photos). Will move to R2.
 - Target DB: Cloudflare D1 + Drizzle ORM. Target auth: NextAuth v5. Target storage: R2.
+- Rich text: TipTap (`@tiptap/react` v3) used for course section editing. `RichTextEditor` wraps StarterKit + Image + Link + Underline + Highlight + TextAlign + Placeholder.
+- Pending-favourite flow: `usePendingFavourite` hook reads `?pending=fav:type:id` from the URL after login redirect and auto-fires the action once logged in.
 
 ### Design system
 Always use CSS variables from `src/styles/tokens.css`:

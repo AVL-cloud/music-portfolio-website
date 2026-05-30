@@ -12,6 +12,7 @@ import { useDataset } from '@/contexts/DatasetContext'
 import { useCovers } from '@/contexts/CoversContext'
 import { useAdmin } from '@/contexts/AdminContext'
 import { useFavourites } from '@/contexts/FavouritesContext'
+import { usePendingFavourite } from '@/contexts/usePendingFavourite'
 import type { Cover } from '@/components/music/CoverCard'
 import { cn } from '@/lib/utils'
 
@@ -19,6 +20,7 @@ const PER_PAGE_OPTIONS = [6, 12, 24] as const
 const PER_PAGE_KEY = 'swc-covers-perpage'
 
 export function CoversClient() {
+  usePendingFavourite()
   const { t } = useI18n()
   const { genres, coverTypes } = useDataset()
   const { covers, addCover, updateCover, deleteCover } = useCovers()
