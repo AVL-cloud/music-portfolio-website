@@ -39,6 +39,9 @@
     "deploy": "opennextjs-cloudflare deploy",
     "start": "next start",
     "lint": "next lint",
-    "test": "playwright test"
+    "test": "playwright test",
+    "test:smoke": "playwright test tests/smoke.spec.ts --project=chromium",
+    "test:nrt": "playwright test tests/smoke.spec.ts tests/pages.spec.ts tests/interactions.spec.ts tests/courses-integrity.spec.ts --project=chromium",
+    "test:local": "BASE_URL=http://localhost:3000 playwright test --project=chromium"
   }
 }
