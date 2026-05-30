@@ -61,10 +61,30 @@ Featured content cards, e.g.:
 - Embedded audio player per release
 
 ### 3.6 Covers (`/covers`)
-- Paginated list of all covers
-- Each cover: embedded video, title, band/artist, style, instruments used, links to same cover on socials
-- Filter bar: style · band name · title search · cover type · instruments
-- Sort: newest / oldest / most popular
+- Paginated list of all covers (card grid)
+- Each cover: embedded video (vertical/portrait format), title, band/artist, genre tags, cover tags, instruments, links to same cover on socials, favourite button
+- Filter bar: genre · band name · title search · cover type · cover tags · instruments
+- Sort: newest / oldest
+
+#### Admin — "+ Add Cover" modal
+Visible only to admin, appears as an action button in the page header.
+Opens a dialog with:
+- **File upload**: drag & drop zone OR Mac file picker — accepts `.mp4` only (1–2 video files, vertical/portrait format)
+- **Title**: text input
+- **Band name**: text input
+- **Genres**: multi-select with search (e.g. Rock, Metal, Pop, Jazz, Acoustic, Electronic…)
+- **Cover tags**: multi-select with search + free-entry (e.g. "acoustic", "solo", "fingerpicking", "live")
+- **Instruments**: multi-select with search (Guitar, Bass, Drums, Keys, Vocals…)
+- **Video date**: datetime picker, defaults to now — can be edited backwards for stock migration of old videos
+- Submit uploads the file(s) to R2, creates the cover record in D1
+
+#### Admin — Cover card actions
+Each cover card in admin view shows additional action buttons:
+- **Edit** — opens the same modal pre-filled
+- **Delete** — confirmation dialog before deletion
+
+#### Admin — Page view
+Same layout as the public view but with the "+ Add Cover" button in the page header and per-card action buttons visible.
 
 ### 3.7 Tabs (`/tabs`)
 - Filterable, sortable list: style · band name · title · instruments
