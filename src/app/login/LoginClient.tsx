@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Music2, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
+import { Music2, Eye, EyeOff, CheckCircle2, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { loginAction, registerAction, forgotPasswordAction } from '@/app/actions/auth'
@@ -18,6 +18,7 @@ export function LoginClient() {
   // Only honour relative paths to avoid open-redirects.
   const nextParam = searchParams.get('next')
   const next = nextParam && nextParam.startsWith('/') ? nextParam : '/'
+  const pendingParam = searchParams.get('pending')
 
   // Per-tab state
   const [loginError, setLoginError] = useState<Record<string, string>>({})
@@ -51,7 +52,10 @@ export function LoginClient() {
     const fd = new FormData(e.currentTarget)
     startTransition(async () => {
       const result = await loginAction(fd)
-      handleResult(result, setLoginError, () => router.push(next))
+      handleResult(result, setLoginError, () => {
+        const dest = pendingParam ? `${next}?pending=${encodeURIComponent(pendingParam)}` : next
+        router.push(dest)
+      })
     })
   }
 
@@ -60,7 +64,10 @@ export function LoginClient() {
     const fd = new FormData(e.currentTarget)
     startTransition(async () => {
       const result = await registerAction(fd)
-      handleResult(result, setRegisterError, () => router.push(next))
+      handleResult(result, setRegisterError, () => {
+        const dest = pendingParam ? `${next}?pending=${encodeURIComponent(pendingParam)}` : next
+        router.push(dest)
+      })
     })
   }
 
@@ -85,6 +92,16 @@ export function LoginClient() {
 
   return (
     <div className="w-full max-w-md">
+      {/* Back link — always visible */}
+      <button
+        onClick={() => (nextParam ? router.push(next) : router.back())}
+        className="mb-6 flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+        data-testid="auth-back-button"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Go back
+      </button>
+
       {/* Logo */}
       <div className="flex flex-col items-center gap-2 mb-8">
         <div className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-xl)] bg-[var(--color-accent-1-subtle)]">

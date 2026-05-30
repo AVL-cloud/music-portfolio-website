@@ -25,9 +25,10 @@ test-results/
 *.log
 npm-debug.log*
 
-# Large static assets (audio, album art — served directly, not useful as context)
+# Large static assets (audio, album art, hero photos — served directly, not useful as context)
 public/music/
 public/gear/
+public/hero/
 
 # Duplicate/junk files (macOS Finder copies)
 **/* 2.tsx

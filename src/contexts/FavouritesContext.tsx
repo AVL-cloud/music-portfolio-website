@@ -72,7 +72,8 @@ export function FavouritesProvider({
   const toggleFavourite = useCallback(
     (type: string, id: string) => {
       if (!isLoggedIn) {
-        router.push(`/login?next=${encodeURIComponent(pathname)}`)
+        const pending = encodeURIComponent(`fav:${type}:${id}`)
+        router.push(`/login?next=${encodeURIComponent(pathname)}&pending=${pending}`)
         return false
       }
       const k = key(type, id)

@@ -1,6 +1,6 @@
 # Technical Specification — sonicwavestudio.com
 
-> Last updated: 2026-05-30 (music + gear pages, favourites/pinning contexts, music + pages contexts, covers CRUD + pagination pref, page visibility)
+> Last updated: 2026-05-31 (about page, hero carousel, rich text editor, pending-favourite hook, course chapter/section favouriting, login UX improvements, sign-out fix)
 > Status: draft — see "Implementation Status" at the end
 
 ---
@@ -16,7 +16,7 @@
 | File storage | Cloudflare R2 | S3-compatible, free egress, used for tab files + images |
 | Auth | NextAuth v5 (Auth.js) + D1 adapter | Edge-compatible, supports OAuth + credentials |
 | Payments | Stripe (Checkout + Webhooks) | One-time tab purchases |
-| Rich text | Tiptap | Already installed; used for courses + personal note |
+| Rich text | Tiptap v3 (`@tiptap/react`) | Courses section editor; `RichTextEditor` component wraps StarterKit + Image + Link + Underline + Highlight + TextAlign + Placeholder |
 | Styling | Tailwind CSS v4 + CSS custom properties | Already installed; token-based design system |
 | Theme | next-themes | SSR-safe, cookie-backed for flash-free load |
 | Language | TypeScript (strict) | Already configured |
@@ -286,6 +286,7 @@ Single-row table (id=1) — admin-editable rich text shown on Home.
 - `Tooltip`
 - `ThemeToggle`
 - `FavouriteButton` — heart/bookmark icon, toggles favourite state, available on all favourable content
+- `RichTextEditor` — TipTap-based WYSIWYG editor (H1–H3, bold/italic/underline/strike/highlight, lists, blockquote, HR, alignment, link, image URL + upload); reads/writes HTML
 
 **Music-specific** (`src/components/music/`)
 - `MusicPlayer` — embedded audio player (track list, play/pause, progress)
@@ -313,15 +314,17 @@ Client state, each backed by `localStorage` until the D1 migration:
 - `DatasetContext` (`swc-datasets`) — managed **Genres** + **Cover types** lists (slug/label)
 - `CoversContext` (`swc-covers`) — covers list + `addCover`/`updateCover`/`deleteCover` + dataset usage/cascade
 - `MusicContext` (`swc-music`) — release genre overrides (+ usage/clear for the dataset cascade) and the "Listen" player config (visible, track order, hidden tracks)
-- `FavouritesContext` (`swc-favourites`) — per-browser favourites keyed `type:id`; login-gated toggling; ordered list per type with `moveFavourite` for user-ordered pinning
+- `FavouritesContext` (`swc-favourites`) — per-browser favourites keyed `type:id`; login-gated toggling with `?pending=fav:type:id` redirect; ordered list per type with `moveFavourite` for user-ordered pinning. Content types: `release`, `cover`, `course_chapter`, `course_section`.
 - `PagesContext` (`swc-pages`) — admin page-visibility (stores disabled page keys)
 - `NotificationContext` — in-app notifications
+- `usePendingFavourite` (hook, `src/contexts/usePendingFavourite.ts`) — reads `?pending=fav:type:id` from URL; fires `toggleFavourite` once `isLoggedIn` becomes true; cleans URL with `router.replace`. Called at the top of MusicClient, CoversClient, CoursesClient, ChapterClient.
 
 **Layout** (`src/components/layout/`)
-- `Header` — nav, socials, auth button; variant: default / hero (front page)
+- `Header` — nav, socials, auth button; sign-out via `<form method="get" action="/logout">` (not `<Link>`) to force a real GET to the route handler
 - `Footer`
 - `PageShell` — consistent page padding + max-width
 - `AdminBar` — thin bar at top of page visible only to admin with edit mode toggle
+- `HeroCarousel` — fullscreen background photo carousel for the front page hero (5 slides, 10 s interval, 1 s crossfade, accent dot indicators, dark overlay + bottom vignette)
 
 ### 5.3 data-testid Convention
 
@@ -422,7 +425,7 @@ Local development: `.env.local` (gitignored)
 
 ---
 
-## 11. Implementation Status (updated 2026-05-30)
+## 11. Implementation Status (updated 2026-05-31)
 
 What is actually built and how it diverges from the target stack. **Update before each PR.**
 
@@ -472,6 +475,34 @@ What is actually built and how it diverges from the target stack. **Update befor
 ### Env vars introduced
 
 `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `ADMIN_EMAILS`, `EMAIL_PROVIDER`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_BASE_URL`.
+
+### About page (this session)
+
+- `src/app/about/page.tsx` — server component, static sections (intro, releases, links, footer note).
+- `src/app/about/AboutClient.tsx` — client component: **Themes & Sound** (pills + pull-quote) and **Story** (timeline), both admin-editable. Uses `InlineField` pattern (pencil-on-hover, inline input/textarea, Save/Cancel). Data persisted to `localStorage` at `swc-about` (`{ quote: string, timeline: TimelineItem[] }`). Defaults defined in `DEFAULT` constant; merged with stored on hydration.
+
+### Hero carousel (this session)
+
+- `src/components/layout/HeroCarousel.tsx` — client component. 5 slides from `public/hero/*.jpg` (Unsplash, free-to-use). 10 s interval, 1 s crossfade via CSS `opacity` transition. `pointer-events-none` container; dark overlay at 70 % opacity; bottom gradient vignette. Accent dot indicators. Uses `next/image` with `fill` + `sizes="100vw"`.
+- `public/hero/` added to `.claudeignore` (large binaries, not useful as context).
+
+### TipTap rich text editor (this session)
+
+- `src/components/ui/RichTextEditor.tsx` — self-contained editor. Extensions: `StarterKit` (headings 1–3, bold, italic, strike, code, code-block, blockquote, lists, HR), `Underline`, `Highlight`, `Link` (autolink, click-to-open off), `Image` (inline=false, base64 allowed), `TextAlign` (paragraph + heading), `Placeholder`.
+- New packages added to `package.json`: `@tiptap/extension-image`, `@tiptap/extension-placeholder`, `@tiptap/extension-text-align`, `@tiptap/extension-highlight`.
+- Toolbar uses `onMouseDown` with `e.preventDefault()` (not `onClick`) to avoid stealing editor focus.
+- Image upload reads as base64 `data:` URL — suitable for dev; replace with R2 upload in production.
+- Scoped `<style>` block inside the component applies all prose styles to `.rte-content .prose-editor` using CSS custom properties (no Tailwind typography plugin needed).
+
+### Pending-favourite flow (this session)
+
+- `FavouritesContext.toggleFavourite` (when logged out): redirects to `/login?next=<pathname>&pending=fav%3A<type>%3A<id>` (all encoded).
+- `LoginClient`: reads `pendingParam` from `useSearchParams`; after login/register success, appends `?pending=<value>` to the `next` URL.
+- `usePendingFavourite` hook (`src/contexts/usePendingFavourite.ts`): `useEffect` fires when `isLoggedIn` becomes true + `pending` param present + not already fired (via `useRef`). Calls `toggleFavourite(type, id)` then `router.replace` to clean the URL.
+
+### localStorage keys (complete list)
+
+`swc-theme`, `swc-covers`, `swc-datasets`, `swc-music`, `swc-favourites`, `swc-pages`, `swc-covers-perpage`, `swc-about`.
 
 ### Pending migration
 

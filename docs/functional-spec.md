@@ -1,6 +1,6 @@
 # Functional Specification — sonicwavestudio.com
 
-> Last updated: 2026-05-30 (gear page, music page + releases, login-gated favourites with pinning/reorder, admin release-tag/player editing, covers seeding + pagination preference, real socials + DistroKid links, admin page enable/disable)
+> Last updated: 2026-05-31 (about page, homepage carousel + explore boxes, login UX improvements, pending-favourite flow, course chapter/section favouriting, rich text editor for courses, admin-editable about content)
 > Status: draft — see §10 Implementation Status
 
 ---
@@ -44,9 +44,11 @@ The reference aesthetic is antoinevlieghemusic.com: clean, spacious, image-forwa
 ---
 
 ### 3.3 Front Page (`/`)
-- Oversized hero with a photo gallery (carousel or masonry)
-- Navigation visible but larger / more prominent than inner pages
-- Transitions to the Home feed below the fold
+- **Hero section**: fullscreen background photo carousel (5 dark/moody stock photos — studio, concert, instruments), auto-advancing every 10 s with a 1 s crossfade. Dark overlay + bottom vignette keep heading text readable. Subtle accent-coloured dot indicators at the bottom.
+- **Heading**: "Music by Antoine Vlieghe" + short tagline, overlaid on the carousel.
+- **CTA buttons**: Listen → `/music`, About me → `/about`.
+- **Explore grid** below the fold: card boxes for Music, Covers, Tabs, Courses, Gear, About — each with an icon, label, and description.
+- Navigation visible but larger / more prominent than inner pages.
 
 ### 3.4 Home Feed (`/home` or scrolled section on `/`)
 Featured content cards, e.g.:
@@ -102,10 +104,12 @@ Same layout as the public view but with the "+ Add Cover" button in the page hea
 - Download dashboard visible to admin (download counts per tab)
 
 ### 3.8 Courses (`/courses`)
-- Course index: list of courses with title, description, thumbnail
-- Course detail: chapters → sections, each section can contain rich text, images, embedded audio
-- **Admin** can create/edit/delete courses, chapters, and sections via an in-page editor (Tiptap)
-- **Member** can read; visitors see a preview with a login prompt
+- **Course index** (`/courses`): chapter cards grouped by part (Guitare, Théorie, Home Studio), each card has a heart icon (top-right) to favourite the chapter. Clicking a card navigates to the chapter detail.
+- **Chapter detail** (`/courses/[slug]`): chapter title, description, section count; "Save chapter" heart button (favourites the chapter); sections accordion with heart per section.
+- **Section accordion**: each section has a toggle (expand/collapse) and an independent heart button (sibling elements — valid HTML, no nested buttons). Expanded sections show rich-text content.
+- **Favouriting**: both chapters (`course_chapter`) and sections (`course_section`) are login-gated via `FavouritesContext`. The pending-favourite flow applies — see §4 (Auth).
+- **Admin** can edit section content via the **TipTap rich text editor** (replaces the old raw-HTML textarea): toolbar with H1/H2/H3, bold/italic/underline/strikethrough/highlight, bullet + ordered lists, blockquote, HR, text alignment, link set/remove, image (URL or file upload). Content is saved as HTML, backward-compatible with existing entries.
+- **Member** can read all content; visitors see a preview with a login prompt.
 
 ### 3.9 Gear (`/gear`)
 - Gear grouped into three sections: **Instruments**, **Software**, **Hardware**
@@ -113,10 +117,18 @@ Same layout as the public view but with the "+ Add Cover" button in the page hea
 - Items sourced from antoinevlieghemusic.com; placeholder entries exist for gear not yet documented (e.g. nylon guitar, keyboard, plugins, second mic, studio headset)
 
 ### 3.10 About (`/about`)
-- Bio
-- Support links (Patreon, Buy Me a Coffee, or similar)
-- Label / distribution info
-- Contact
+- **Intro**: name heading, Paris location, two bio paragraphs.
+- **Themes & Sound**: pill tags (Love ♥, Loss ✝, Time, Cinematic, Introspective, Narrative) + an editable pull-quote.
+- **Story timeline**: four milestones (Conservatoire → Engineering degree → Back to music → Cours Florent Paris), each with icon, year/date label, title, and body text.
+- **Selected works**: 2-column grid of 6 key releases linking to `/music`.
+- **Listen & follow**: external links (Spotify, Apple Music, YouTube, Deezer, Instagram, TikTok).
+- **Footer note**: "Thanks for visiting — hope you had a good time."
+
+#### Admin editing on the About page
+- **Edit mode** reveals inline pencil icons on hover for all story items and the pull-quote.
+- Editable fields per timeline item: **title**, **year/date**, **body text** (multiline).
+- The **pull-quote** is also inline-editable (multiline textarea).
+- Changes persist to `localStorage` (`swc-about`) and survive page reloads.
 
 ### 3.11 Preferences (`/preferences`) — member only
 - Theme: Light / Dark / System (default: System)
@@ -142,6 +154,13 @@ Same layout as the public view but with the "+ Add Cover" button in the page hea
 - Password reset via email
 - Session stored in cookie (edge-compatible)
 - Admin identity: `process.env.ADMIN_EMAIL` — only this email receives admin privileges; cannot be claimed via any registration flow
+
+### Login UX — redirect & pending-action flow
+- The login page always shows a **"← Go back"** link at the top (uses `router.back()` when arriving directly, or `router.push(next)` when redirected).
+- When a logged-out user triggers a login-gated action (e.g. favouriting a release), they are redirected to `/login?next=/music&pending=fav:release:abc`.
+- After a successful login or registration, they are redirected to `next` with `?pending=fav:release:abc` appended.
+- The `usePendingFavourite` hook (called on every page that has favourite buttons) reads the `pending` param, fires `toggleFavourite` once `isLoggedIn` becomes true, and removes the param from the URL with `router.replace`.
+- Result: the user lands back on the page they came from with the action already performed — no need to click again.
 
 ---
 
@@ -251,7 +270,7 @@ All admin actions are done in-context — no separate `/admin` dashboard. Each p
 
 ---
 
-## 10. Implementation Status (updated 2026-05-30)
+## 10. Implementation Status (updated 2026-05-31)
 
 This section tracks what is actually built versus the target above. Update it before each PR.
 
@@ -299,6 +318,34 @@ This section tracks what is actually built versus the target above. Update it be
 ### Header socials — corrected (this session)
 
 - Real profile URLs for Spotify, Apple Music, YouTube, **YouTube Music**, **Deezer**, Instagram, TikTok (the last two were previously placeholders).
+
+### About page — implemented (this session)
+
+- Full `/about` page with intro, themes & sound pills, pull-quote, story timeline (4 items), selected works grid, streaming/social links, footer note.
+- **Admin-editable** in edit mode: story item title/year/body and pull-quote use the `InlineField` component (pencil-on-hover → inline textarea → Save/Cancel). Persists to `localStorage` (`swc-about`).
+- `BadgeIcon` for "Loss" theme is a latin cross ✝ (contextual reference to grief/death).
+
+### Homepage — enriched (this session)
+
+- **Hero carousel** (`HeroCarousel`): 5 dark/moody music/studio stock photos, 10 s interval, 1 s crossfade, accent-dot indicators. Replaces the old decorative blur gradients.
+- **Explore grid** extended with **Gear** and **About** boxes (icons: `Settings2`, `User`) alongside the existing Music, Covers, Tabs, Courses boxes.
+
+### Login UX improvements (this session)
+
+- **"← Go back"** button always visible on `/login` (not only when redirected).
+- **Pending-action flow**: `FavouritesContext.toggleFavourite` encodes `pending=fav:type:id` in the login redirect. `LoginClient` forwards it after login. `usePendingFavourite` hook replays the action on return and clears the URL param.
+- Applied on: Music page, Covers page, Courses page (both `/courses` index and chapter detail).
+
+### Sign-out fix (this session)
+
+- The header "Sign out" link switched from `<Link href="/logout">` (intercepted by Next.js router) to `<form action="/logout" method="get">` to guarantee a real GET hits the route handler and clears the session cookie.
+
+### Courses — favouriting + rich text editor (this session)
+
+- **Chapter favouriting** from the courses index (`course_chapter` type, heart icon on each card).
+- **Chapter favouriting** from the chapter detail page ("Save chapter" pill button above sections).
+- **Section favouriting** wired to `FavouritesContext` (`course_section` type); heart is a sibling of the toggle button (not nested) to produce valid HTML.
+- **Rich text editor**: the raw-HTML `<textarea>` in section editing replaced by `RichTextEditor` (TipTap), supporting: H1–H3, bold, italic, underline, strikethrough, highlight, bullet/ordered lists, blockquote, HR, left/center/right alignment, link, image (URL or file upload as base64). Outputs and reads HTML — backward-compatible with existing content.
 
 ### Divergences from the target spec
 
