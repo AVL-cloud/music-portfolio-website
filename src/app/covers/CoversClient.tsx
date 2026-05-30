@@ -3,46 +3,19 @@ import { useState, useMemo } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import { CoverCard, type Cover } from '@/components/music/CoverCard'
 import { AddCoverModal } from '@/components/music/AddCoverModal'
-import { FilterBar, type FilterGroup } from '@/components/ui/FilterBar'
+import { FilterBar } from '@/components/ui/FilterBar'
 import { Pagination } from '@/components/ui/Pagination'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/layout/PageShell'
+import { useI18n } from '@/contexts/I18nContext'
+import { useDataset } from '@/contexts/DatasetContext'
 
-const FILTER_GROUPS: FilterGroup[] = [
-  {
-    key: 'genre',
-    label: 'Genre',
-    options: [
-      { value: 'rock', label: 'Rock' },
-      { value: 'metal', label: 'Metal' },
-      { value: 'pop', label: 'Pop' },
-      { value: 'acoustic', label: 'Acoustic' },
-      { value: 'jazz', label: 'Jazz' },
-      { value: 'progressive', label: 'Progressive' },
-      { value: 'ambient', label: 'Ambient' },
-    ],
-  },
-  {
-    key: 'coverType',
-    label: 'Type',
-    options: [
-      { value: 'solo', label: 'Solo' },
-      { value: 'acoustic', label: 'Acoustic' },
-      { value: 'fingerpicking', label: 'Fingerpicking' },
-      { value: 'live', label: 'Live' },
-      { value: 'looper', label: 'Looper' },
-    ],
-  },
-  {
-    key: 'instrument',
-    label: 'Instrument',
-    options: [
-      { value: 'guitar', label: 'Guitar' },
-      { value: 'bass', label: 'Bass' },
-      { value: 'keys', label: 'Keys' },
-      { value: 'vocals', label: 'Vocals' },
-    ],
-  },
+// Instrument list is static (not a managed dataset yet)
+const INSTRUMENT_OPTIONS = [
+  { value: 'guitar', label: 'Guitar' },
+  { value: 'bass',   label: 'Bass' },
+  { value: 'keys',   label: 'Keys' },
+  { value: 'vocals', label: 'Vocals' },
 ]
 
 const PER_PAGE = 12
@@ -56,9 +29,18 @@ interface CoversClientProps {
 }
 
 export function CoversClient({ covers, isAdmin, favedIds = [], onFavToggle, onDelete }: CoversClientProps) {
+  const { t } = useI18n()
+  const { genres, coverTypes } = useDataset()
+
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Record<string, string[]>>({})
   const [page, setPage] = useState(1)
+
+  const filterGroups = useMemo(() => [
+    { key: 'genre',      label: t.covers.filterGenre,      options: genres },
+    { key: 'coverType',  label: t.covers.filterType,       options: coverTypes },
+    { key: 'instrument', label: t.covers.filterInstrument, options: INSTRUMENT_OPTIONS },
+  ], [genres, coverTypes, t])
 
   const filtered = useMemo(() => {
     return covers.filter(c => {
@@ -89,13 +71,13 @@ export function CoversClient({ covers, isAdmin, favedIds = [], onFavToggle, onDe
   return (
     <div data-testid="covers-page">
       <PageHeader
-        title="Covers"
-        description="My favourite songs, reimagined."
+        title={t.covers.title}
+        description={t.covers.description}
         actions={isAdmin ? <AddCoverModal onSubmit={async () => {}} /> : undefined}
       />
 
       <FilterBar
-        groups={FILTER_GROUPS}
+        groups={filterGroups}
         selected={selected}
         search={search}
         onSearchChange={v => { setSearch(v); setPage(1) }}
@@ -107,9 +89,9 @@ export function CoversClient({ covers, isAdmin, favedIds = [], onFavToggle, onDe
 
       {paged.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <p className="text-lg font-medium text-[var(--color-text)]">No covers found</p>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">Try adjusting your filters</p>
-          <Button variant="ghost" onClick={clear} className="mt-4">Clear filters</Button>
+          <p className="text-lg font-medium text-[var(--color-text)]">{t.covers.noCovers}</p>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">{t.covers.noCoversHint}</p>
+          <Button variant="ghost" onClick={clear} className="mt-4">{t.common.clearFilters}</Button>
         </div>
       ) : (
         <>
@@ -147,8 +129,7 @@ export function CoversClient({ covers, isAdmin, favedIds = [], onFavToggle, onDe
       )}
 
       <p className="mt-6 text-sm text-[var(--color-text-subtle)] text-center">
-        {filtered.length} cover{filtered.length !== 1 ? 's' : ''}
-        {filtered.length !== covers.length && ` · ${covers.length} total`}
+        {t.covers.coverCount(filtered.length, covers.length)}
       </p>
     </div>
   )

@@ -1,11 +1,14 @@
 'use client'
 import { useState } from 'react'
-import { Settings2, Eye, Pencil, ChevronDown } from 'lucide-react'
+import Link from 'next/link'
+import { Settings2, Eye, Pencil, ChevronDown, Database, Languages } from 'lucide-react'
 import { useAdmin } from '@/contexts/AdminContext'
+import { useI18n } from '@/contexts/I18nContext'
 import { cn } from '@/lib/utils'
 
 export function AdminBar() {
   const { isAdmin, editMode, setEditMode } = useAdmin()
+  const { t } = useI18n()
   const [collapsed, setCollapsed] = useState(false)
 
   if (!isAdmin) return null
@@ -25,7 +28,27 @@ export function AdminBar() {
     <div data-testid="admin-bar" className="w-full bg-[var(--color-accent-1)] text-white text-xs">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center gap-4 h-8">
         <Settings2 className="h-3.5 w-3.5 shrink-0" />
-        <span className="font-medium">Admin mode</span>
+        <span className="font-medium">{t.admin.adminMode}</span>
+
+        {/* Quick links */}
+        <Link
+          href="/admin/datasets"
+          data-testid="admin-bar-datasets-link"
+          className="inline-flex items-center gap-1 text-white/80 hover:text-white transition-colors"
+        >
+          <Database className="h-3 w-3" />
+          {t.admin.datasets}
+        </Link>
+
+        <Link
+          href="/admin/translations"
+          data-testid="admin-bar-translations-link"
+          className="inline-flex items-center gap-1 text-white/80 hover:text-white transition-colors"
+        >
+          <Languages className="h-3 w-3" />
+          Translations
+        </Link>
+
         <div className="flex items-center gap-2 ml-auto">
           <button
             onClick={() => setEditMode(!editMode)}
@@ -36,7 +59,7 @@ export function AdminBar() {
             )}
           >
             {editMode ? <Pencil className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-            {editMode ? 'Editing' : 'Viewing'}
+            {editMode ? t.admin.editing : t.admin.viewing}
           </button>
           <button onClick={() => setCollapsed(true)} aria-label="Collapse admin bar"
             className="p-1 rounded hover:bg-white/20 text-white/70 hover:text-white transition-colors">

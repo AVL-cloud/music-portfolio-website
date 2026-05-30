@@ -6,6 +6,8 @@ import { AdminBar } from '@/components/layout/AdminBar'
 import { TooltipProvider } from '@/components/ui/Tooltip'
 import { AdminProvider } from '@/contexts/AdminContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
+import { I18nProvider } from '@/contexts/I18nContext'
+import { DatasetProvider } from '@/contexts/DatasetContext'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -30,16 +32,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className="flex min-h-screen flex-col">
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem storageKey="swc-theme">
-          <AdminProvider isAdmin={IS_ADMIN}>
-            <NotificationProvider isLoggedIn={IS_LOGGED_IN}>
-              <TooltipProvider>
-                <AdminBar />
-                <Header isLoggedIn={IS_LOGGED_IN} />
-                <div className="flex-1">{children}</div>
-                <Footer />
-              </TooltipProvider>
-            </NotificationProvider>
-          </AdminProvider>
+          <I18nProvider>
+            <DatasetProvider>
+              <AdminProvider isAdmin={IS_ADMIN}>
+                <NotificationProvider isLoggedIn={IS_LOGGED_IN}>
+                  <TooltipProvider>
+                    <AdminBar />
+                    <Header isLoggedIn={IS_LOGGED_IN} />
+                    <div className="flex-1">{children}</div>
+                    <Footer />
+                  </TooltipProvider>
+                </NotificationProvider>
+              </AdminProvider>
+            </DatasetProvider>
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>
