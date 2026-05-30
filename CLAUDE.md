@@ -61,3 +61,7 @@ Les tests utilisent `data-testid` pour cibler les éléments (ex: `header-nav-mu
 Ne pas charger automatiquement en contexte — appeler au besoin :
 - **`docs/functional-spec.md`** — rôles utilisateurs, pages, fonctionnalités attendues (CMS admin, système de favoris, paiements Stripe pour les tabs…)
 - **`docs/technical-spec.md`** — stack cible complète (D1, Drizzle, R2, NextAuth v5, Stripe), structure de repo cible, schéma DB, conventions API
+
+### Mise à jour des specs avant chaque PR (obligatoire)
+
+Avant d'ouvrir une PR, **mettre à jour `docs/functional-spec.md` et `docs/technical-spec.md`** pour refléter les changements introduits par la PR (nouvelles fonctionnalités, pages, routes, modèles de données, conventions, état actuel vs cible). Le but : que ces fichiers soient toujours à jour au démarrage de la session suivante. Inclure ces mises à jour dans la PR elle-même.

@@ -1,7 +1,7 @@
 # Functional Specification — sonicwavestudio.com
 
-> Last updated: 2026-05-30
-> Status: draft
+> Last updated: 2026-05-30 (auth, member preferences + contact log, admin contact requests + digest, dataset cascade delete)
+> Status: draft — see §10 Implementation Status
 
 ---
 
@@ -235,3 +235,35 @@ All admin actions are done in-context — no separate `/admin` dashboard. Each p
 - Subscription / recurring payments
 - Multi-language support
 - Admin invitation / multi-admin
+
+---
+
+## 10. Implementation Status (updated 2026-05-30)
+
+This section tracks what is actually built versus the target above. Update it before each PR.
+
+### Authentication & members — implemented
+
+- **Login / Register / Forgot password** at `/login` (tabbed). Registration takes optional username, email, password + confirmation, with full client+server validation. If no username is set, the email is used to greet the member.
+- **Forgot password** accepts an email **or** a username; a reset link valid for 24 h is generated (link logged to the server console until an email provider is wired). Reset flow at `/reset-password?token=…`. Works for members and admins.
+- **Sessions** are real (HTTP-only signed cookie). `isLoggedIn` / `isAdmin` in the layout derive from the session, not dev flags.
+- **Preferences** (`/preferences`, member-only) has a profile submenu: **Account** (change username — uniqueness enforced; change password — current password verified) and **Contact log**.
+- **Admin credentials**: `antoine.vlieghe@gmail.com` is the bootstrap admin. The admin password is stored **only as a hash** (never in clear) — see technical spec.
+
+### Contact requests — implemented (replaces mock in §3.13)
+
+- Public/member contact form persists requests to a store (file-based in dev, D1 later).
+- **Members**: see their own submissions + any reply in **Contact log** (`/preferences/contact-log`). Once a request is answered the thread is **closed** (no further replies). Admin archiving never affects the member's view.
+- **Admin**: dedicated page `/admin/contact-requests` (server-gated to admins, linked from the AdminBar) to review, **answer** (sender notified by email), and **archive**. **Archive is admin-only** — it hides the request from the admin list but does not change what the member sees.
+- **Weekly admin digest**: emails every admin a count of the past week's contact requests + a link to the admin page. Triggerable manually from the admin page or via `GET /api/cron/contact-digest` (to be put on a schedule).
+
+### Datasets (admin) — implemented
+
+- Deleting a managed dataset value (genre / cover type) that is **in use** warns the admin (e.g. "Used by 3 covers — deleting removes this tag from them.") and, on confirm, **cascades** the removal from every cover using it.
+
+### Divergences from the target spec
+
+- Auth is a **custom cookie/JWT implementation**, not NextAuth v5 (target). Same UX; revisit if NextAuth is reintroduced.
+- Contact, users, reset tokens, and covers are backed by **dev stores (JSON files / localStorage)** pending the Cloudflare D1 migration.
+- Email sending currently **logs to the console** — no provider wired yet.
+- Admin answering of contact messages and a weekly multi-admin digest now exist, which softens the original "single admin / no admin tooling" framing.

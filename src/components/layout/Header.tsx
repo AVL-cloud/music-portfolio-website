@@ -98,8 +98,11 @@ export function Header({ hero, user, isLoggedIn, className }: HeaderProps) {
             {isLoggedIn ? (
               <>
                 <NotificationBell />
-                <Link href="/favourites" data-testid="header-user-avatar" className="ml-1">
+                <Link href="/preferences" data-testid="header-user-avatar" className="ml-1">
                   <Avatar src={user?.image} name={user?.name ?? 'Antoine'} size="sm" />
+                </Link>
+                <Link href="/logout" data-testid="header-logout-button" className="ml-1">
+                  <Button size="sm" variant="ghost" className="text-xs">{t.nav.signOut}</Button>
                 </Link>
               </>
             ) : (

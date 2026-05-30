@@ -2,6 +2,7 @@
 import { redirect } from 'next/navigation'
 import { useAdmin } from '@/contexts/AdminContext'
 import { useDataset } from '@/contexts/DatasetContext'
+import { useCovers } from '@/contexts/CoversContext'
 import { useI18n } from '@/contexts/I18nContext'
 import { PageHeader } from '@/components/layout/PageShell'
 import { DatasetList } from './DatasetList'
@@ -9,6 +10,7 @@ import { DatasetList } from './DatasetList'
 export default function DatasetsPage() {
   const { isAdmin } = useAdmin()
   const { genres, coverTypes, setGenres, setCoverTypes } = useDataset()
+  const { countUsing, clearDatasetValue } = useCovers()
   const { t } = useI18n()
 
   // Guard — redirect non-admins
@@ -26,6 +28,9 @@ export default function DatasetsPage() {
         description={t.datasets.genresDescription}
         items={genres}
         onChange={setGenres}
+        getUsage={value => countUsing('style', value)}
+        onDeleteValue={value => clearDatasetValue('style', value)}
+        usageNoun="cover"
         data-testid="dataset-genres"
       />
 
@@ -34,6 +39,9 @@ export default function DatasetsPage() {
         description={t.datasets.coverTypesDescription}
         items={coverTypes}
         onChange={setCoverTypes}
+        getUsage={value => countUsing('coverType', value)}
+        onDeleteValue={value => clearDatasetValue('coverType', value)}
+        usageNoun="cover"
         data-testid="dataset-cover-types"
       />
     </main>

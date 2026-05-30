@@ -1,7 +1,7 @@
 'use client'
 import { useState, useMemo } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
-import { CoverCard, type Cover } from '@/components/music/CoverCard'
+import { CoverCard } from '@/components/music/CoverCard'
 import { AddCoverModal } from '@/components/music/AddCoverModal'
 import { FilterBar } from '@/components/ui/FilterBar'
 import { Pagination } from '@/components/ui/Pagination'
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/layout/PageShell'
 import { useI18n } from '@/contexts/I18nContext'
 import { useDataset } from '@/contexts/DatasetContext'
+import { useCovers } from '@/contexts/CoversContext'
 
 // Instrument list is static (not a managed dataset yet)
 const INSTRUMENT_OPTIONS = [
@@ -21,16 +22,16 @@ const INSTRUMENT_OPTIONS = [
 const PER_PAGE = 12
 
 interface CoversClientProps {
-  covers: Cover[]
   isAdmin?: boolean
   favedIds?: string[]
   onFavToggle?: (type: string, id: string) => void
   onDelete?: (id: string) => void
 }
 
-export function CoversClient({ covers, isAdmin, favedIds = [], onFavToggle, onDelete }: CoversClientProps) {
+export function CoversClient({ isAdmin, favedIds = [], onFavToggle, onDelete }: CoversClientProps) {
   const { t } = useI18n()
   const { genres, coverTypes } = useDataset()
+  const { covers } = useCovers()
 
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Record<string, string[]>>({})

@@ -12,6 +12,12 @@ interface DatasetListProps {
   description: string
   items: DatasetItem[]
   onChange: (items: DatasetItem[]) => void
+  // How many places currently use this value (e.g. covers tagged with it).
+  getUsage?: (value: string) => number
+  // Cascade removal: strip this value from everywhere it appears before deleting.
+  onDeleteValue?: (value: string) => void
+  // Noun for the usage warning, e.g. "cover". Defaults to "item".
+  usageNoun?: string
   'data-testid'?: string
 }
 
@@ -24,7 +30,7 @@ function slugify(s: string) {
     .replace(/^-|-$/g, '')
 }
 
-export function DatasetList({ title, description, items, onChange, 'data-testid': testId }: DatasetListProps) {
+export function DatasetList({ title, description, items, onChange, getUsage, onDeleteValue, usageNoun = 'item', 'data-testid': testId }: DatasetListProps) {
   const { t } = useI18n()
   const ds = t.datasets
 
@@ -72,6 +78,11 @@ export function DatasetList({ title, description, items, onChange, 'data-testid'
   const cancelEdit = () => setEditingIdx(null)
 
   const deleteItem = (idx: number) => {
+    const item = items[idx]
+    // Cascade: strip the value from everywhere it's used before removing it.
+    if (item && (getUsage?.(item.value) ?? 0) > 0) {
+      onDeleteValue?.(item.value)
+    }
     commit(items.filter((_, i) => i !== idx))
     setDeleteConfirmIdx(null)
   }
@@ -179,13 +190,25 @@ export function DatasetList({ title, description, items, onChange, 'data-testid'
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     {deleteConfirmIdx === idx ? (
                       <>
-                        <span className="text-xs text-[var(--color-error)] mr-1">{ds.deleteConfirm}</span>
+                        {(() => {
+                          const usage = getUsage?.(item.value) ?? 0
+                          return (
+                            <span
+                              className="text-xs text-[var(--color-error)] mr-1 text-right"
+                              data-testid={`${testId}-delete-warning-${item.value}`}
+                            >
+                              {usage > 0
+                                ? `Used by ${usage} ${usageNoun}${usage === 1 ? '' : 's'} — deleting removes this tag from ${usage === 1 ? 'it' : 'them'}.`
+                                : ds.deleteConfirm}
+                            </span>
+                          )
+                        })()}
                         <button
                           onClick={() => deleteItem(idx)}
                           data-testid={`${testId}-delete-confirm-${item.value}`}
-                          className="px-2 py-1 rounded text-xs font-medium bg-[var(--color-error)] text-white hover:opacity-90 transition-opacity"
+                          className="px-2 py-1 rounded text-xs font-medium bg-[var(--color-error)] text-white hover:opacity-90 transition-opacity whitespace-nowrap"
                         >
-                          {t.common.confirm}
+                          {(getUsage?.(item.value) ?? 0) > 0 ? 'Delete anyway' : t.common.confirm}
                         </button>
                         <button
                           onClick={() => setDeleteConfirmIdx(null)}

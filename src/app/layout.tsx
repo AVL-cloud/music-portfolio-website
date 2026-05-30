@@ -8,6 +8,8 @@ import { AdminProvider } from '@/contexts/AdminContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import { I18nProvider } from '@/contexts/I18nContext'
 import { DatasetProvider } from '@/contexts/DatasetContext'
+import { CoversProvider } from '@/contexts/CoversContext'
+import { getSession } from '@/lib/auth/session'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -23,27 +25,30 @@ export const metadata: Metadata = {
   },
 }
 
-// TODO Phase 3: derive isAdmin from session (ADMIN_EMAIL check) and isLoggedIn from auth
-const IS_ADMIN = process.env.NODE_ENV === 'development'
-const IS_LOGGED_IN = process.env.NODE_ENV === 'development'
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = await getSession()
+  const isLoggedIn = session !== null
+  const isAdmin = session?.role === 'admin'
+  const user = session ? { name: session.username ?? session.email } : undefined
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="flex min-h-screen flex-col">
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem storageKey="swc-theme">
           <I18nProvider>
             <DatasetProvider>
-              <AdminProvider isAdmin={IS_ADMIN}>
-                <NotificationProvider isLoggedIn={IS_LOGGED_IN}>
+              <CoversProvider>
+              <AdminProvider isAdmin={isAdmin}>
+                <NotificationProvider isLoggedIn={isLoggedIn}>
                   <TooltipProvider>
                     <AdminBar />
-                    <Header isLoggedIn={IS_LOGGED_IN} />
+                    <Header isLoggedIn={isLoggedIn} user={user} />
                     <div className="flex-1">{children}</div>
                     <Footer />
                   </TooltipProvider>
                 </NotificationProvider>
               </AdminProvider>
+              </CoversProvider>
             </DatasetProvider>
           </I18nProvider>
         </ThemeProvider>
