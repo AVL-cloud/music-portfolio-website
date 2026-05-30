@@ -100,11 +100,11 @@ test.describe('Pages — Covers', () => {
     await page.goto('/covers')
     await expect(page.getByTestId('filter-chip-genre-rock')).toBeVisible()
     await expect(page.getByTestId('filter-chip-genre-metal')).toBeVisible()
-    await expect(page.getByTestId('filter-bar-search')).toBeVisible()
+    await expect(page.getByTestId('filter-text-title')).toBeVisible()
   })
 
   test('cover cards render', async ({ page }) => {
     await page.goto('/covers')
-    await expect(page.getByTestId('cover-card-1')).toBeVisible()
+    await expect(page.getByTestId('cover-card-bohemian-rhapsody')).toBeVisible()
   })
 })
