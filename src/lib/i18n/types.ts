@@ -53,7 +53,8 @@ export interface Translations {
     noCoversHint: string
     filterGenre: string
     filterType: string
-    filterInstrument: string
+    filterTitle: string
+    filterArtist: string
     coverCount: (n: number, total: number) => string
     addCover: string
   }

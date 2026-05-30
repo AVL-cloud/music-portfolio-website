@@ -237,8 +237,6 @@ export default function ComponentShowcase() {
               { key: 'type', label: 'Type', options: [{ value: 'solo', label: 'Solo' }, { value: 'cover', label: 'Cover' }, { value: 'live', label: 'Live' }] },
             ]}
             selected={filterSelected}
-            search=""
-            onSearchChange={() => {}}
             onToggle={(g, v) => setFilterSelected(s => { const cur = s[g] ?? []; return { ...s, [g]: cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v] } })}
             onClear={() => setFilterSelected({})}
           />
