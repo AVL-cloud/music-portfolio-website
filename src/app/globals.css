@@ -1,1 +1,53 @@
 @import "tailwindcss";
+@import "../styles/tokens.css";
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    font-family: var(--font-sans);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background-color: var(--color-accent-1-subtle);
+    color: var(--color-accent-1);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent-1);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--color-text);
+  }
+
+  a {
+    color: var(--color-accent-1);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  a:hover { color: var(--color-accent-1-hover); }
+
+  img { max-width: 100%; height: auto; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--color-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: var(--radius-full); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+}
