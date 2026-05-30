@@ -1,0 +1,16 @@
+name = "music-portfolio-website"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+main = ".open-next/worker.js"
+
+routes = [
+  { pattern = "sonicwavestudio.com", custom_domain = true },
+  { pattern = "www.sonicwavestudio.com", custom_domain = true }
+]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[build]
+command = "npm run build:cf"
