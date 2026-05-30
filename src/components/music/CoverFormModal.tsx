@@ -34,7 +34,7 @@ interface CoverFormModalProps {
 }
 
 function emptyForm(): Cover {
-  return { id: '', title: '', bandName: '', style: '', coverType: '', instruments: [], embedUrl: '', description: '', videoDate: '' }
+  return { id: '', title: '', bandName: '', style: '', coverType: '', instruments: [], embedUrl: '', videoUrl: '', description: '', videoDate: '' }
 }
 
 export function CoverFormModal({ open, onOpenChange, initial, genres, coverTypes, onSave }: CoverFormModalProps) {
@@ -106,9 +106,14 @@ export function CoverFormModal({ open, onOpenChange, initial, genres, coverTypes
             data-testid="cover-form-instruments"
           />
 
-          <Input label="Video embed URL" value={form.embedUrl} onChange={e => set('embedUrl', e.target.value)}
-            placeholder="https://www.tiktok.com/embed/…  (leave empty for now)"
-            hint="TikTok / Instagram / YouTube embed URL — leave empty to upload later."
+          <Input label="Video URL" value={form.videoUrl ?? ''} onChange={e => set('videoUrl', e.target.value)}
+            placeholder="/covers/my-cover.mp4  or  https://r2.example.com/…"
+            hint="Direct video file (mp4/mov) — served locally or from R2."
+            data-testid="cover-form-video-url" />
+
+          <Input label="Embed URL" value={form.embedUrl} onChange={e => set('embedUrl', e.target.value)}
+            placeholder="https://www.tiktok.com/embed/…"
+            hint="TikTok / Instagram / YouTube embed URL — used when no direct video URL is set."
             data-testid="cover-form-embed" />
 
           <Input label="Video date" type="datetime-local" value={form.videoDate ?? ''}

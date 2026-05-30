@@ -2,25 +2,226 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import type { Cover } from '@/components/music/CoverCard'
 
-// Seeded from antoinevlieghemusic.com/covers. Videos (embedUrl) are added by the
-// admin in edit mode; until then each card shows a "video coming soon" placeholder.
-// `videoDate` is unknown for now — set it in edit mode to order the grid.
-// Will be replaced with a D1 query when the CMS lands.
+// Videos reference symlinks under public/covers/ → Desktop source files (dev only).
+// Will be replaced with Cloudflare R2 URLs when the CMS lands.
 export const DEFAULT_COVERS: Cover[] = [
   {
-    id: 'bohemian-rhapsody', title: 'Bohemian Rhapsody', bandName: 'Queen',
-    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'], embedUrl: '',
-    description: 'Working on these bends with some Brian May.',
+    id: 'asking-alexandria-never-gonna-learn', title: 'Never Gonna Learn', bandName: 'Asking Alexandria',
+    style: 'metal', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/asking-alexandria-never-gonna-learn.mp4',
+    videoDate: '2026-05-14',
   },
   {
-    id: 'shape-of-my-heart', title: 'Shape of My Heart', bandName: 'Sting',
-    style: 'pop', coverType: 'acoustic', instruments: ['guitar'], embedUrl: '',
+    id: 'sting-shape-of-my-heart', title: 'Shape of My Heart', bandName: 'Sting',
+    style: 'pop', coverType: 'acoustic', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/sting-shape-of-my-heart.mp4',
     description: 'Acoustic rendition — I made a tab available on Ultimate Guitar.',
+    videoDate: '2026-04-19',
   },
   {
-    id: 'asking-alexandria', title: 'Asking Alexandria Cover', bandName: 'Asking Alexandria',
-    style: 'metal', coverType: 'guitar-solo', instruments: ['guitar'], embedUrl: '',
-    description: 'One of the best metalcore bands out there, if you ask me.',
+    id: 'muse-stockholm-syndrome', title: 'Stockholm Syndrome', bandName: 'Muse',
+    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/muse-stockholm-syndrome.mp4',
+    videoDate: '2026-04-12',
+  },
+  {
+    id: 'queen-bohemian-rhapsody', title: 'Bohemian Rhapsody', bandName: 'Queen',
+    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/queen-bohemian-rhapsody.mp4',
+    description: 'Working on these bends with some Brian May.',
+    videoDate: '2026-04-05',
+  },
+  {
+    id: 'pink-floyd-high-hopes', title: 'High Hopes — Solo Part 1', bandName: 'Pink Floyd',
+    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/pink-floyd-high-hopes.mp4',
+    videoDate: '2026-03-17',
+  },
+  {
+    id: 'ratm-killing-in-the-name', title: 'Killing In The Name Of', bandName: 'Rage Against The Machine',
+    style: 'metal', coverType: 'riff', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/ratm-killing-in-the-name.mp4',
+    videoDate: '2026-03-14',
+  },
+  {
+    id: 'rhcp-californication-acoustic', title: 'Californication — Acoustic', bandName: 'Red Hot Chili Peppers',
+    style: 'rock', coverType: 'acoustic', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/rhcp-californication-acoustic.mov',
+    videoDate: '2026-03-02',
+  },
+  {
+    id: 'thirty-seconds-to-mars-the-kill', title: 'The Kill — Verse 2', bandName: 'Thirty Seconds To Mars',
+    style: 'alternative', coverType: 'guitar', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/thirty-seconds-to-mars-the-kill.mp4',
+    videoDate: '2026-02-20',
+  },
+  {
+    id: 'good-charlotte-the-river', title: 'The River', bandName: 'Good Charlotte',
+    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/good-charlotte-the-river.mp4',
+    videoDate: '2026-02-14',
+  },
+  {
+    id: 'eric-clapton-autumn-leaves', title: 'Autumn Leaves — Acoustic Solo', bandName: 'Eric Clapton',
+    style: 'blues', coverType: 'acoustic', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/eric-clapton-autumn-leaves.mov',
+    videoDate: '2026-02-07',
+  },
+  {
+    id: 'muse-new-born', title: 'New Born — Riff', bandName: 'Muse',
+    style: 'rock', coverType: 'riff', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/muse-new-born.mp4',
+    videoDate: '2026-01-25',
+  },
+  {
+    id: 'rhcp-californication-solo', title: 'Californication — Solo', bandName: 'Red Hot Chili Peppers',
+    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/rhcp-californication-solo.mp4',
+    videoDate: '2026-01-19',
+  },
+  {
+    id: 'muse-animals', title: 'Animals — Solo 1', bandName: 'Muse',
+    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/muse-animals.mp4',
+    videoDate: '2026-01-11',
+  },
+  {
+    id: 'three-days-grace-riot', title: 'Riot — Verse & Chorus', bandName: 'Three Days Grace',
+    style: 'metal', coverType: 'guitar', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/three-days-grace-riot.mp4',
+    videoDate: '2026-01-03',
+  },
+  {
+    id: 'muse-mk-ultra', title: 'MK Ultra — Intro', bandName: 'Muse',
+    style: 'rock', coverType: 'guitar', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/muse-mk-ultra.mp4',
+    videoDate: '2025-12-21',
+  },
+  {
+    id: 'maneskin-iwbys-chorus', title: 'I Wanna Be Your Slave — Chorus Riff', bandName: 'Måneskin',
+    style: 'rock', coverType: 'riff', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/maneskin-iwbys-chorus.mp4',
+    videoDate: '2025-12-07',
+  },
+  {
+    id: 'mumford-little-lion-man', title: 'Little Lion Man', bandName: 'Mumford and Sons',
+    style: 'rock', coverType: 'acoustic', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/mumford-little-lion-man.mov',
+    videoDate: '2025-11-30',
+  },
+  {
+    id: 'marilyn-manson-sweet-dreams', title: 'Sweet Dreams (Are Made of This)', bandName: 'Marilyn Manson',
+    style: 'metal', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/marilyn-manson-sweet-dreams.mp4',
+    videoDate: '2025-11-23',
+  },
+  {
+    id: 'maneskin-iwbys-verse', title: 'I Wanna Be Your Slave — Verse Riff', bandName: 'Måneskin',
+    style: 'rock', coverType: 'riff', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/maneskin-iwbys-verse.mp4',
+    videoDate: '2025-11-16',
+  },
+  {
+    id: 'muse-hysteria-bass', title: 'Hysteria — Bass Riff on Guitar', bandName: 'Muse',
+    style: 'rock', coverType: 'riff', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/muse-hysteria-bass.mp4',
+    videoDate: '2025-11-09',
+  },
+  {
+    id: 'rhcp-cant-stop-solo', title: "Can't Stop — Solo", bandName: 'Red Hot Chili Peppers',
+    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/rhcp-cant-stop-solo.mp4',
+    videoDate: '2025-11-02',
+  },
+  {
+    id: 'the-strokes-the-adults-are-talking', title: 'The Adults Are Talking — Chorus & Bridge', bandName: 'The Strokes',
+    style: 'alternative', coverType: 'guitar', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/the-strokes-the-adults-are-talking.mp4',
+    videoDate: '2025-10-25',
+  },
+  {
+    id: 'muse-plug-in-baby', title: 'Plug In Baby — Intro', bandName: 'Muse',
+    style: 'rock', coverType: 'guitar', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/muse-plug-in-baby.mov',
+    videoDate: '2025-10-19',
+  },
+  {
+    id: 'reamonn-tonight', title: 'Tonight', bandName: 'Reamonn',
+    style: 'pop', coverType: 'acoustic', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/reamonn-tonight.mp4',
+    videoDate: '2025-10-12',
+  },
+  {
+    id: 'rhcp-cant-stop-riff', title: "Can't Stop — Riff", bandName: 'Red Hot Chili Peppers',
+    style: 'rock', coverType: 'riff', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/rhcp-cant-stop-riff.mov',
+    videoDate: '2025-10-05',
+  },
+  {
+    id: 'green-day-21-guns', title: '21 Guns — Solo', bandName: 'Green Day',
+    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/green-day-21-guns.mov',
+    videoDate: '2025-09-25',
+  },
+  {
+    id: 'papa-roach-last-resort', title: 'Last Resort — Riff', bandName: 'Papa Roach',
+    style: 'rock', coverType: 'riff', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/papa-roach-last-resort.mov',
+    videoDate: '2025-09-22',
+  },
+  {
+    id: 'coldplay-violet-hill', title: 'Violet Hill — Solo', bandName: 'Coldplay',
+    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/coldplay-violet-hill.mov',
+    videoDate: '2025-09-19',
+  },
+  {
+    id: 'maneskin-gossip', title: 'Gossip — Riff', bandName: 'Måneskin',
+    style: 'rock', coverType: 'riff', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/maneskin-gossip.mov',
+    videoDate: '2025-09-16',
+  },
+  {
+    id: 'gary-jules-mad-world', title: 'Mad World', bandName: 'Gary Jules',
+    style: 'pop', coverType: 'acoustic', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/gary-jules-mad-world.mov',
+    videoDate: '2025-09-13',
+  },
+  {
+    id: 'rise-against-but-tonight-we-dance', title: 'But Tonight We Dance — Solo', bandName: 'Rise Against',
+    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/rise-against-but-tonight-we-dance.mov',
+    videoDate: '2025-09-10',
+  },
+  {
+    id: 'arctic-monkeys-do-i-wanna-know', title: 'Do I Wanna Know — Riff', bandName: 'Arctic Monkeys',
+    style: 'alternative', coverType: 'riff', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/arctic-monkeys-do-i-wanna-know.mov',
+    videoDate: '2025-09-07',
+  },
+  {
+    id: 'maneskin-honey-are-u-coming', title: 'Honey (Are U Coming?) — Riff', bandName: 'Måneskin',
+    style: 'rock', coverType: 'riff', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/maneskin-honey-are-u-coming.mov',
+    videoDate: '2025-09-04',
+  },
+  {
+    id: 'green-day-american-idiot', title: 'American Idiot — Solo', bandName: 'Green Day',
+    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/green-day-american-idiot.mov',
+    videoDate: '2025-09-02',
+  },
+  {
+    id: 'muse-hysteria-solo', title: 'Hysteria — Solo', bandName: 'Muse',
+    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/muse-hysteria-solo.MOV',
+    videoDate: '2025-08-23',
+  },
+  {
+    id: 'green-day-holiday', title: 'Holiday — Solo', bandName: 'Green Day',
+    style: 'rock', coverType: 'guitar-solo', instruments: ['guitar'],
+    embedUrl: '', videoUrl: '/covers/green-day-holiday.mp4',
+    videoDate: '2025-08-22',
   },
 ]
 

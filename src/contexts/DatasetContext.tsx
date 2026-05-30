@@ -42,6 +42,7 @@ export const DEFAULT_COVER_TYPES: DatasetItem[] = [
   { value: 'guitar',      label: 'Guitar' },
   { value: 'duet',        label: 'Duet' },
   { value: 'guitar-solo', label: 'Guitar Solo' },
+  { value: 'riff',        label: 'Riff' },
 ]
 
 const STORAGE_KEY = 'swc-datasets'

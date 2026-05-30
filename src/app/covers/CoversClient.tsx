@@ -1,6 +1,6 @@
 'use client'
 import { useState, useMemo, useEffect } from 'react'
-import { Pencil, Trash2, Plus } from 'lucide-react'
+import { Pencil, Trash2, Plus, Heart } from 'lucide-react'
 import { CoverCard } from '@/components/music/CoverCard'
 import { CoverFormModal } from '@/components/music/CoverFormModal'
 import { FilterBar } from '@/components/ui/FilterBar'
@@ -13,6 +13,8 @@ import { useCovers } from '@/contexts/CoversContext'
 import { useAdmin } from '@/contexts/AdminContext'
 import { useFavourites } from '@/contexts/FavouritesContext'
 import { usePendingFavourite } from '@/contexts/usePendingFavourite'
+import { MiniPlayerProvider, useMiniPlayer } from '@/contexts/MiniPlayerContext'
+import { MiniPlayer } from '@/components/music/MiniPlayer'
 import type { Cover } from '@/components/music/CoverCard'
 import { cn } from '@/lib/utils'
 
@@ -20,18 +22,28 @@ const PER_PAGE_OPTIONS = [6, 12, 24] as const
 const PER_PAGE_KEY = 'swc-covers-perpage'
 
 export function CoversClient() {
+  return (
+    <MiniPlayerProvider>
+      <CoversContent />
+    </MiniPlayerProvider>
+  )
+}
+
+function CoversContent() {
   usePendingFavourite()
   const { t } = useI18n()
   const { genres, coverTypes } = useDataset()
   const { covers, addCover, updateCover, deleteCover } = useCovers()
   const { isAdmin, editMode } = useAdmin()
   const { isLoggedIn, isFaved, toggleFavourite } = useFavourites()
+  const { activeCover, open: openMiniPlayer } = useMiniPlayer()
 
   const editing = isAdmin && editMode
 
   const [titleSearch, setTitleSearch]   = useState('')
   const [artistSearch, setArtistSearch] = useState('')
   const [selected, setSelected] = useState<Record<string, string[]>>({})
+  const [likedOnly, setLikedOnly] = useState(false)
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState<number>(6)
 
@@ -82,6 +94,7 @@ export function CoversClient() {
 
   const filtered = useMemo(() => {
     const list = covers.filter(c => {
+      if (likedOnly && !isFaved('cover', c.id)) return false
       if (titleSearch  && !c.title.toLowerCase().includes(titleSearch.toLowerCase()))    return false
       if (artistSearch && !c.bandName.toLowerCase().includes(artistSearch.toLowerCase())) return false
       for (const [key, vals] of Object.entries(selected)) {
@@ -106,7 +119,7 @@ export function CoversClient() {
     setPage(1)
   }
 
-  const clear = () => { setSelected({}); setTitleSearch(''); setArtistSearch(''); setPage(1) }
+  const clear = () => { setSelected({}); setTitleSearch(''); setArtistSearch(''); setLikedOnly(false); setPage(1) }
 
   return (
     <div data-testid="covers-page">
@@ -126,9 +139,28 @@ export function CoversClient() {
         selected={selected}
         onToggle={toggle}
         onClear={clear}
-        className="mb-6"
+        className="mb-4"
         data-testid="covers-filter-bar"
       />
+
+      {isLoggedIn && (
+        <div className="mb-6">
+          <button
+            onClick={() => { setLikedOnly(v => !v); setPage(1) }}
+            aria-pressed={likedOnly}
+            data-testid="covers-filter-liked"
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium transition-colors',
+              likedOnly
+                ? 'border-[var(--color-accent-1)] bg-[var(--color-accent-1)] text-white'
+                : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent-1)] hover:text-[var(--color-accent-1)]',
+            )}
+          >
+            <Heart className={cn('h-3.5 w-3.5', likedOnly && 'fill-current')} />
+            {t.covers.filterLiked}
+          </button>
+        </div>
+      )}
 
       {/* Per-page selector */}
       <div className="mb-6 flex items-center justify-end gap-2 text-sm text-[var(--color-text-muted)]">
@@ -169,6 +201,8 @@ export function CoversClient() {
                   isFaved={isFaved('cover', cover.id)}
                   onFavToggle={(type, id) => toggleFavourite(type, id)}
                   labelFor={labelFor}
+                  onPlayInMiniPlayer={(cover, t) => openMiniPlayer(cover, t)}
+                  isActiveInMiniPlayer={activeCover?.id === cover.id}
                 />
                 {editing && (
                   <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -210,6 +244,8 @@ export function CoversClient() {
           onSave={handleSave}
         />
       )}
+
+      <MiniPlayer />
     </div>
   )
 }

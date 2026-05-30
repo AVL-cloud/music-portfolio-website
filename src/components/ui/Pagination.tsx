@@ -1,5 +1,5 @@
 'use client'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface PaginationProps {
@@ -16,6 +16,14 @@ export function Pagination({ page, totalPages, onPageChange, className, 'data-te
 
   return (
     <nav data-testid={testId} className={cn('flex items-center gap-1', className)} aria-label="Pagination">
+      <button
+        onClick={() => onPageChange(1)}
+        disabled={page <= 1}
+        aria-label="First page"
+        className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-raised)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        <ChevronFirst className="h-4 w-4" />
+      </button>
       <button
         onClick={() => onPageChange(page - 1)}
         disabled={page <= 1}
@@ -54,6 +62,14 @@ export function Pagination({ page, totalPages, onPageChange, className, 'data-te
         className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-raised)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         <ChevronRight className="h-4 w-4" />
+      </button>
+      <button
+        onClick={() => onPageChange(totalPages)}
+        disabled={page >= totalPages}
+        aria-label="Last page"
+        className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-raised)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        <ChevronLast className="h-4 w-4" />
       </button>
     </nav>
   )

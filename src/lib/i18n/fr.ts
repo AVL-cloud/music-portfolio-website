@@ -85,6 +85,7 @@ export const fr: Translations = {
       `${n} reprise${n !== 1 ? 's' : ''}${n !== total ? ` · ${total} au total` : ''}`,
     addCover: 'Ajouter une reprise',
     perPage: 'Par page',
+    filterLiked: 'Aimés',
   },
 
   courses: {

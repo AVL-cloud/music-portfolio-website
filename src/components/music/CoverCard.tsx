@@ -2,6 +2,7 @@ import { ExternalLink, Video } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { FavouriteButton } from '@/components/ui/FavouriteButton'
+import { CoverVideoPlayer } from './CoverVideoPlayer'
 
 export interface Cover {
   id: string
@@ -11,6 +12,8 @@ export interface Cover {
   coverType: string
   instruments: string[]
   embedUrl: string
+  /** Local or remote video URL — rendered as a <video> element (vs iframe for embedUrl). */
+  videoUrl?: string
   description?: string
   /** Date the cover was posted — used to order the covers grid. */
   videoDate?: string
@@ -23,13 +26,23 @@ interface CoverCardProps {
   onFavToggle?: (type: string, id: string) => void
   /** Resolve a slug to its display label (from the Genres / cover-type datasets). */
   labelFor?: (value: string) => string
+  /** Called when the user wants to open this cover in the mini-player. */
+  onPlayInMiniPlayer?: (cover: Cover, startTime?: number) => void
+  /** True when this cover is currently playing in the mini-player. */
+  isActiveInMiniPlayer?: boolean
 }
 
-export function CoverCard({ cover, isFaved, onFavToggle, labelFor = v => v }: CoverCardProps) {
+export function CoverCard({ cover, isFaved, onFavToggle, labelFor = v => v, onPlayInMiniPlayer, isActiveInMiniPlayer }: CoverCardProps) {
   return (
     <Card hover data-testid={`cover-card-${cover.id}`}>
       <div className="relative aspect-video bg-[var(--color-surface-raised)]">
-        {cover.embedUrl ? (
+        {cover.videoUrl ? (
+          <CoverVideoPlayer
+            cover={cover}
+            onPlayInMiniPlayer={onPlayInMiniPlayer}
+            isActiveInMiniPlayer={isActiveInMiniPlayer}
+          />
+        ) : cover.embedUrl ? (
           <iframe src={cover.embedUrl} title={cover.title} className="h-full w-full" allowFullScreen loading="lazy" />
         ) : (
           <div

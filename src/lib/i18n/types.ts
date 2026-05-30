@@ -90,6 +90,7 @@ export interface Translations {
     coverCount: (n: number, total: number) => string
     addCover: string
     perPage: string
+    filterLiked: string
   }
 
   // ─── Courses page ──────────────────────────────────────────────────
