@@ -7,17 +7,21 @@ import { Button } from '@/components/ui/Button'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { Avatar } from '@/components/ui/Avatar'
 import { NotificationBell } from '@/components/ui/NotificationBell'
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
+import { useI18n } from '@/contexts/I18nContext'
 import { cn } from '@/lib/utils'
 
-const NAV = [
-  { href: '/music',   label: 'Music' },
-  { href: '/covers',  label: 'Covers' },
-  { href: '/tabs',    label: 'Tabs' },
-  { href: '/courses', label: 'Courses' },
-  { href: '/gear',    label: 'Gear' },
-  { href: '/about',   label: 'About' },
-  { href: '/contact', label: 'Contact' },
-]
+const NAV_KEYS = ['music', 'covers', 'tabs', 'courses', 'gear', 'about', 'contact'] as const
+type NavKey = typeof NAV_KEYS[number]
+const NAV_HREFS: Record<NavKey, string> = {
+  music:   '/music',
+  covers:  '/covers',
+  tabs:    '/tabs',
+  courses: '/courses',
+  gear:    '/gear',
+  about:   '/about',
+  contact: '/contact',
+}
 
 const SOCIALS = [
   { href: 'https://open.spotify.com/artist/',  label: 'Spotify' },
@@ -38,6 +42,9 @@ interface HeaderProps {
 export function Header({ hero, user, isLoggedIn, className }: HeaderProps) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const { t } = useI18n()
+
+  const NAV = NAV_KEYS.map(key => ({ href: NAV_HREFS[key], label: t.nav[key] }))
 
   return (
     <header
@@ -86,6 +93,7 @@ export function Header({ hero, user, isLoggedIn, className }: HeaderProps) {
           </nav>
 
           <div className="flex items-center gap-1 ml-auto">
+            <LanguageSwitcher compact />
             <ThemeToggle compact />
             {isLoggedIn ? (
               <>
@@ -96,7 +104,7 @@ export function Header({ hero, user, isLoggedIn, className }: HeaderProps) {
               </>
             ) : (
               <Link href="/login" data-testid="header-login-button" className="ml-1">
-                <Button size="sm" variant="secondary">Sign in</Button>
+                <Button size="sm" variant="secondary">{t.nav.signIn}</Button>
               </Link>
             )}
             <button
