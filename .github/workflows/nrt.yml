@@ -1,0 +1,81 @@
+name: NRT — Daily Non-Regression Tests
+
+on:
+  schedule:
+    - cron: '0 8 * * *'   # every day at 08:00 UTC
+  workflow_dispatch:        # allow manual trigger
+
+jobs:
+  nrt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run full NRT suite against production
+        id: tests
+        run: |
+          npx playwright test \
+            tests/smoke.spec.ts \
+            tests/pages.spec.ts \
+            tests/interactions.spec.ts \
+            tests/courses-integrity.spec.ts \
+            --project=chromium \
+            --reporter=json,list
+        env:
+          BASE_URL: https://sonicwavestudio.com
+        continue-on-error: true   # capture results even on failure
+
+      - name: Upload NRT report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nrt-report-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Create GitHub Issue on failure
+        if: steps.tests.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const date = new Date().toISOString().split('T')[0]
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🔴 NRT failure — ${date}`,
+              body: [
+                '## Daily Non-Regression Test failed',
+                '',
+                `**Date:** ${date}`,
+                `**Run:** ${runUrl}`,
+                `**Report:** Download \`nrt-report-${context.runId}\` from the run artifacts.`,
+                '',
+                '## What to check',
+                '1. Open the Playwright HTML report from the artifacts',
+                '2. Identify failing tests and screenshots',
+                '3. Check if it is a real regression or a flaky test',
+                '',
+                '## Common fixes',
+                '- UI content changed → update test selectors',
+                '- New page not yet tested → add test coverage',
+                '- Cloudflare deployment issue → check wrangler logs',
+                '',
+                '_Opened automatically by the NRT workflow._',
+              ].join('\n'),
+              labels: ['non-regression', 'automated'],
+            })
