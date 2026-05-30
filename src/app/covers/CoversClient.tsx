@@ -11,14 +11,6 @@ import { useI18n } from '@/contexts/I18nContext'
 import { useDataset } from '@/contexts/DatasetContext'
 import { useCovers } from '@/contexts/CoversContext'
 
-// Instrument list is static (not a managed dataset yet)
-const INSTRUMENT_OPTIONS = [
-  { value: 'guitar', label: 'Guitar' },
-  { value: 'bass',   label: 'Bass' },
-  { value: 'keys',   label: 'Keys' },
-  { value: 'vocals', label: 'Vocals' },
-]
-
 const PER_PAGE = 12
 
 interface CoversClientProps {
@@ -33,28 +25,45 @@ export function CoversClient({ isAdmin, favedIds = [], onFavToggle, onDelete }: 
   const { genres, coverTypes } = useDataset()
   const { covers } = useCovers()
 
-  const [search, setSearch] = useState('')
+  const [titleSearch, setTitleSearch]   = useState('')
+  const [artistSearch, setArtistSearch] = useState('')
   const [selected, setSelected] = useState<Record<string, string[]>>({})
   const [page, setPage] = useState(1)
 
   const filterGroups = useMemo(() => [
-    { key: 'genre',      label: t.covers.filterGenre,      options: genres },
-    { key: 'coverType',  label: t.covers.filterType,       options: coverTypes },
-    { key: 'instrument', label: t.covers.filterInstrument, options: INSTRUMENT_OPTIONS },
+    { key: 'genre',     label: t.covers.filterGenre, options: genres },
+    { key: 'coverType', label: t.covers.filterType,  options: coverTypes },
   ], [genres, coverTypes, t])
+
+  const textFilters = useMemo(() => [
+    {
+      key: 'title',
+      label: t.covers.filterTitle,
+      placeholder: t.covers.filterTitle,
+      value: titleSearch,
+      onChange: (v: string) => { setTitleSearch(v); setPage(1) },
+    },
+    {
+      key: 'artist',
+      label: t.covers.filterArtist,
+      placeholder: t.covers.filterArtist,
+      value: artistSearch,
+      onChange: (v: string) => { setArtistSearch(v); setPage(1) },
+    },
+  ], [titleSearch, artistSearch, t])
 
   const filtered = useMemo(() => {
     return covers.filter(c => {
-      if (search && !c.title.toLowerCase().includes(search.toLowerCase()) && !c.bandName.toLowerCase().includes(search.toLowerCase())) return false
+      if (titleSearch  && !c.title.toLowerCase().includes(titleSearch.toLowerCase()))    return false
+      if (artistSearch && !c.bandName.toLowerCase().includes(artistSearch.toLowerCase())) return false
       for (const [key, vals] of Object.entries(selected)) {
         if (!vals.length) continue
-        if (key === 'genre' && !vals.some(v => c.style === v)) return false
+        if (key === 'genre'     && !vals.some(v => c.style     === v)) return false
         if (key === 'coverType' && !vals.some(v => c.coverType === v)) return false
-        if (key === 'instrument' && !vals.some(v => c.instruments.includes(v))) return false
       }
       return true
     })
-  }, [covers, search, selected])
+  }, [covers, titleSearch, artistSearch, selected])
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE)
   const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
@@ -67,7 +76,7 @@ export function CoversClient({ isAdmin, favedIds = [], onFavToggle, onDelete }: 
     setPage(1)
   }
 
-  const clear = () => { setSelected({}); setSearch(''); setPage(1) }
+  const clear = () => { setSelected({}); setTitleSearch(''); setArtistSearch(''); setPage(1) }
 
   return (
     <div data-testid="covers-page">
@@ -79,9 +88,8 @@ export function CoversClient({ isAdmin, favedIds = [], onFavToggle, onDelete }: 
 
       <FilterBar
         groups={filterGroups}
+        textFilters={textFilters}
         selected={selected}
-        search={search}
-        onSearchChange={v => { setSearch(v); setPage(1) }}
         onToggle={toggle}
         onClear={clear}
         className="mb-8"

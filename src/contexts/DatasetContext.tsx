@@ -23,21 +23,22 @@ export interface Dataset {
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
 export const DEFAULT_GENRES: DatasetItem[] = [
-  { value: 'rock',        label: 'Rock' },
-  { value: 'metal',       label: 'Metal' },
-  { value: 'pop',         label: 'Pop' },
-  { value: 'acoustic',    label: 'Acoustic' },
-  { value: 'jazz',        label: 'Jazz' },
-  { value: 'progressive', label: 'Progressive' },
-  { value: 'ambient',     label: 'Ambient' },
+  { value: 'rock',       label: 'Rock' },
+  { value: 'pop',        label: 'Pop' },
+  { value: 'grunge',     label: 'Grunge' },
+  { value: 'metal',      label: 'Metal' },
+  { value: 'jazz',       label: 'Jazz' },
+  { value: 'blues',      label: 'Blues' },
+  { value: 'classical',  label: 'Classical' },
+  { value: 'soundtrack', label: 'Soundtrack' },
 ]
 
 export const DEFAULT_COVER_TYPES: DatasetItem[] = [
-  { value: 'solo',          label: 'Solo' },
-  { value: 'acoustic',      label: 'Acoustic' },
-  { value: 'fingerpicking', label: 'Fingerpicking' },
-  { value: 'live',          label: 'Live' },
-  { value: 'looper',        label: 'Looper' },
+  { value: 'acoustic',    label: 'Acoustic' },
+  { value: 'piano',       label: 'Piano' },
+  { value: 'guitar',      label: 'Guitar' },
+  { value: 'duet',        label: 'Duet' },
+  { value: 'guitar-solo', label: 'Guitar Solo' },
 ]
 
 const STORAGE_KEY = 'swc-datasets'

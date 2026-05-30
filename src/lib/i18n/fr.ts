@@ -49,7 +49,8 @@ export const fr: Translations = {
     noCoversHint: "Essayez d'ajuster vos filtres",
     filterGenre: 'Genre',
     filterType: 'Type',
-    filterInstrument: 'Instrument',
+    filterTitle: 'Titre',
+    filterArtist: 'Artiste',
     coverCount: (n, total) =>
       `${n} reprise${n !== 1 ? 's' : ''}${n !== total ? ` · ${total} au total` : ''}`,
     addCover: 'Ajouter une reprise',

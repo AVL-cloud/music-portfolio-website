@@ -49,7 +49,8 @@ export const en: Translations = {
     noCoversHint: 'Try adjusting your filters',
     filterGenre: 'Genre',
     filterType: 'Type',
-    filterInstrument: 'Instrument',
+    filterTitle: 'Title',
+    filterArtist: 'Artist',
     coverCount: (n, total) =>
       `${n} cover${n !== 1 ? 's' : ''}${n !== total ? ` · ${total} total` : ''}`,
     addCover: 'Add cover',
