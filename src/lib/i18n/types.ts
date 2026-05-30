@@ -45,6 +45,38 @@ export interface Translations {
     datasetsDescription: string
   }
 
+  // ─── Music page ────────────────────────────────────────────────────
+  music: {
+    title: string
+    description: string
+    latestTracks: string
+    latestTracksHint: string
+    releases: string
+    pinned: string
+    addTag: string
+    addTagPlaceholder: string
+    playerVisibility: string
+    playerShown: string
+    playerHidden: string
+    showInPlayer: string
+    hideFromPlayer: string
+    moveUp: string
+    moveDown: string
+    playerHiddenNote: string
+  }
+
+  // ─── Page visibility ───────────────────────────────────────────────
+  pages: {
+    adminTitle: string
+    adminDescription: string
+    adminHint: string
+    visible: string
+    hidden: string
+    unavailableTitle: string
+    unavailableBody: string
+    hiddenBanner: string
+  }
+
   // ─── Covers page ───────────────────────────────────────────────────
   covers: {
     title: string
@@ -57,6 +89,7 @@ export interface Translations {
     filterArtist: string
     coverCount: (n: number, total: number) => string
     addCover: string
+    perPage: string
   }
 
   // ─── Courses page ──────────────────────────────────────────────────
@@ -68,6 +101,15 @@ export interface Translations {
     duration: string
     level: string
     noTranslation: string
+  }
+
+  // ─── Gear page ─────────────────────────────────────────────────────
+  gear: {
+    title: string
+    description: string
+    instruments: string
+    software: string
+    hardware: string
   }
 
   // ─── Contact page ──────────────────────────────────────────────────

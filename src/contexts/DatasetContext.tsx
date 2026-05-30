@@ -31,6 +31,9 @@ export const DEFAULT_GENRES: DatasetItem[] = [
   { value: 'blues',      label: 'Blues' },
   { value: 'classical',  label: 'Classical' },
   { value: 'soundtrack', label: 'Soundtrack' },
+  { value: 'instrumental', label: 'Instrumental' },
+  { value: 'alternative',  label: 'Alternative' },
+  { value: 'soul',         label: 'Soul' },
 ]
 
 export const DEFAULT_COVER_TYPES: DatasetItem[] = [

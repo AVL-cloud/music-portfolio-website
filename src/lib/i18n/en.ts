@@ -42,6 +42,36 @@ export const en: Translations = {
     datasetsDescription: 'Manage reference lists used across the site.',
   },
 
+  music: {
+    title: 'Music',
+    description: 'My original releases — EPs and albums spanning rock, pop, and instrumental work.',
+    latestTracks: 'Listen',
+    latestTracksHint: 'A selection of mastered tracks from my releases.',
+    releases: 'Releases',
+    pinned: 'Pinned',
+    addTag: 'Add tag',
+    addTagPlaceholder: 'Add a tag…',
+    playerVisibility: 'Player',
+    playerShown: 'Visible',
+    playerHidden: 'Hidden',
+    showInPlayer: 'Show in player',
+    hideFromPlayer: 'Hide from player',
+    moveUp: 'Move up',
+    moveDown: 'Move down',
+    playerHiddenNote: 'The player is hidden from visitors.',
+  },
+
+  pages: {
+    adminTitle: 'Pages',
+    adminDescription: 'Show or hide site pages. Hidden pages stay visible and editable for admins.',
+    adminHint: 'Hidden pages are removed from the navigation and return an “unavailable” notice to visitors.',
+    visible: 'Visible',
+    hidden: 'Hidden',
+    unavailableTitle: 'Page unavailable',
+    unavailableBody: 'This page is currently not available. Please check back later.',
+    hiddenBanner: 'This page is hidden from visitors — only admins can see it.',
+  },
+
   covers: {
     title: 'Covers',
     description: 'My favourite songs, reimagined.',
@@ -54,6 +84,7 @@ export const en: Translations = {
     coverCount: (n, total) =>
       `${n} cover${n !== 1 ? 's' : ''}${n !== total ? ` · ${total} total` : ''}`,
     addCover: 'Add cover',
+    perPage: 'Per page',
   },
 
   courses: {
@@ -64,6 +95,14 @@ export const en: Translations = {
     duration: 'Duration',
     level: 'Level',
     noTranslation: 'This content is only available in French.',
+  },
+
+  gear: {
+    title: 'Gear',
+    description: 'The instruments, software, and hardware behind my sound.',
+    instruments: 'Instruments',
+    software: 'Software',
+    hardware: 'Hardware',
   },
 
   contact: {

@@ -9,6 +9,10 @@ import { NotificationProvider } from '@/contexts/NotificationContext'
 import { I18nProvider } from '@/contexts/I18nContext'
 import { DatasetProvider } from '@/contexts/DatasetContext'
 import { CoversProvider } from '@/contexts/CoversContext'
+import { MusicProvider } from '@/contexts/MusicContext'
+import { FavouritesProvider } from '@/contexts/FavouritesContext'
+import { PagesProvider } from '@/contexts/PagesContext'
+import { PageVisibilityGate } from '@/components/layout/PageVisibilityGate'
 import { getSession } from '@/lib/auth/session'
 import { listNotificationsForUser } from '@/lib/notifications/store'
 import type { AppNotification } from '@/contexts/NotificationContext'
@@ -50,16 +54,24 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <I18nProvider>
             <DatasetProvider>
               <CoversProvider>
+              <MusicProvider>
+              <FavouritesProvider isLoggedIn={isLoggedIn}>
+              <PagesProvider>
               <AdminProvider isAdmin={isAdmin}>
                 <NotificationProvider initialNotifications={initialNotifications}>
                   <TooltipProvider>
                     <AdminBar />
                     <Header isLoggedIn={isLoggedIn} user={user} />
-                    <div className="flex-1">{children}</div>
+                    <div className="flex-1">
+                      <PageVisibilityGate>{children}</PageVisibilityGate>
+                    </div>
                     <Footer />
                   </TooltipProvider>
                 </NotificationProvider>
               </AdminProvider>
+              </PagesProvider>
+              </FavouritesProvider>
+              </MusicProvider>
               </CoversProvider>
             </DatasetProvider>
           </I18nProvider>

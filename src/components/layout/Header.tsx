@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Music2, Menu, X } from 'lucide-react'
+import { Music2, Menu, X, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
@@ -9,6 +9,8 @@ import { Avatar } from '@/components/ui/Avatar'
 import { NotificationBell } from '@/components/ui/NotificationBell'
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
 import { useI18n } from '@/contexts/I18nContext'
+import { useAdmin } from '@/contexts/AdminContext'
+import { usePages } from '@/contexts/PagesContext'
 import { cn } from '@/lib/utils'
 
 const NAV_KEYS = ['music', 'covers', 'tabs', 'courses', 'gear', 'about', 'contact'] as const
@@ -50,16 +52,28 @@ function SocialIcon({ label }: { label: string }) {
         <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
       </svg>
     ),
+    Deezer: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3 shrink-0">
+        <path d="M18.81 4.16v3.03H24V4.16h-5.19zM6.27 8.38v3.027h5.189V8.38h-5.19zm12.54 0v3.027H24V8.38h-5.19zM0 12.604v3.027h5.19v-3.027H0zm6.27 0v3.027h5.189v-3.027h-5.19zm6.271 0v3.027h5.19v-3.027h-5.19zm6.27 0v3.027H24v-3.027h-5.19zM0 16.81v3.029h5.19V16.81H0zm6.27 0v3.029h5.189V16.81h-5.19zm6.271 0v3.029h5.19V16.81h-5.19zm6.27 0v3.029H24V16.81h-5.19z" />
+      </svg>
+    ),
+    'YouTube Music': (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3 shrink-0">
+        <path d="M12 0C5.376 0 0 5.376 0 12s5.376 12 12 12 12-5.376 12-12S18.624 0 12 0zm0 19.104c-3.924 0-7.104-3.18-7.104-7.104S8.076 4.896 12 4.896s7.104 3.18 7.104 7.104-3.18 7.104-7.104 7.104zm0-13.332c-3.432 0-6.228 2.796-6.228 6.228S8.568 18.228 12 18.228s6.228-2.796 6.228-6.228S15.432 5.772 12 5.772zM9.684 15.54V8.46L15.816 12l-6.132 3.54z" />
+      </svg>
+    ),
   }
   return icons[label] ?? null
 }
 
 const SOCIALS = [
-  { href: 'https://open.spotify.com/artist/',  label: 'Spotify' },
-  { href: 'https://music.apple.com/',          label: 'Apple Music' },
-  { href: 'https://youtube.com/',              label: 'YouTube' },
-  { href: 'https://instagram.com/',            label: 'Instagram' },
-  { href: 'https://tiktok.com/',               label: 'TikTok' },
+  { href: 'https://open.spotify.com/intl-fr/artist/5ZMM2wF65CgSFtdV8faw8T', label: 'Spotify' },
+  { href: 'https://music.apple.com/us/artist/antoine-vlieghe/1559276858',   label: 'Apple Music' },
+  { href: 'https://www.youtube.com/channel/UCTf2Iqbvjub3-NS2aXTgr_A',       label: 'YouTube' },
+  { href: 'https://music.youtube.com/channel/UCTf2Iqbvjub3-NS2aXTgr_A',     label: 'YouTube Music' },
+  { href: 'https://www.deezer.com/fr/artist/127213952',                    label: 'Deezer' },
+  { href: 'https://www.instagram.com/antoinevl.music/',                    label: 'Instagram' },
+  { href: 'https://www.tiktok.com/@antoine_vlieghe',                       label: 'TikTok' },
 ]
 
 interface User { name?: string; image?: string | null }
@@ -74,8 +88,13 @@ export function Header({ hero, user, isLoggedIn, className }: HeaderProps) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const { t } = useI18n()
+  const { isAdmin } = useAdmin()
+  const { isEnabled } = usePages()
 
-  const NAV = NAV_KEYS.map(key => ({ href: NAV_HREFS[key], label: t.nav[key] }))
+  // Disabled pages are dropped for visitors; admins keep them, marked as hidden.
+  const NAV = NAV_KEYS
+    .map(key => ({ href: NAV_HREFS[key], label: t.nav[key], enabled: isEnabled(key) }))
+    .filter(item => isAdmin || item.enabled)
 
   return (
     <header
@@ -110,16 +129,18 @@ export function Header({ hero, user, isLoggedIn, className }: HeaderProps) {
           </Link>
 
           <nav className="hidden md:flex items-center gap-1 flex-1">
-            {NAV.map(({ href, label }) => (
+            {NAV.map(({ href, label, enabled }) => (
               <Link key={href} href={href}
                 data-testid={`header-nav-${label.toLowerCase()}`}
                 className={cn(
-                  'px-3 py-1.5 rounded-[var(--radius-md)] text-sm font-medium transition-colors',
+                  'flex items-center gap-1 px-3 py-1.5 rounded-[var(--radius-md)] text-sm font-medium transition-colors',
                   pathname.startsWith(href)
                     ? 'text-[var(--color-accent-1)] bg-[var(--color-accent-1-subtle)]'
                     : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-raised)]',
+                  !enabled && 'opacity-60',
                 )}>
                 {label}
+                {!enabled && <EyeOff className="h-3 w-3" aria-label="Hidden from visitors" />}
               </Link>
             ))}
           </nav>
@@ -156,15 +177,17 @@ export function Header({ hero, user, isLoggedIn, className }: HeaderProps) {
         {/* Mobile nav */}
         {open && (
           <div className="md:hidden border-t border-[var(--color-border)] py-3 space-y-1" data-testid="header-mobile-nav">
-            {NAV.map(({ href, label }) => (
+            {NAV.map(({ href, label, enabled }) => (
               <Link key={href} href={href} onClick={() => setOpen(false)}
                 className={cn(
-                  'block px-3 py-2 rounded-[var(--radius-md)] text-sm font-medium transition-colors',
+                  'flex items-center gap-1 px-3 py-2 rounded-[var(--radius-md)] text-sm font-medium transition-colors',
                   pathname.startsWith(href)
                     ? 'text-[var(--color-accent-1)] bg-[var(--color-accent-1-subtle)]'
                     : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
+                  !enabled && 'opacity-60',
                 )}>
                 {label}
+                {!enabled && <EyeOff className="h-3 w-3" aria-label="Hidden from visitors" />}
               </Link>
             ))}
           </div>
