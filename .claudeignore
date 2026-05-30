@@ -1,0 +1,39 @@
+# .claudeignore — files Claude should not load into context
+
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+.open-next/
+out/
+dist/
+
+# Cloudflare / Wrangler
+.wrangler/
+.worker-next/
+wrangler.toml.bak
+
+# Test artifacts
+playwright-report/
+test-results/
+
+# Dev data stores (contain personal/local data)
+.data/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Large static assets (audio, album art — served directly, not useful as context)
+public/music/
+public/gear/
+
+# Duplicate/junk files (macOS Finder copies)
+**/* 2.tsx
+**/* 2.ts
+**/* 2.jsx
+**/* 2.js
+
+# OS
+.DS_Store

@@ -2,6 +2,11 @@
  * UI interaction tests — user flows that must work end-to-end.
  */
 import { test, expect } from '@playwright/test'
+import { makeSessionToken, seedNotification, removeNotification, SESSION_COOKIE, type SeedNotification } from './helpers/session'
+
+// Seeding a session + notifications needs the dev `.data` store, so the
+// logged-in notification flow only runs against a local server.
+const IS_LOCAL = (process.env.BASE_URL ?? '').includes('localhost')
 
 test.describe('Interactions — Theme toggle', () => {
   test('cycles through light / dark / system', async ({ page }) => {
@@ -47,9 +52,9 @@ test.describe('Interactions — Courses accordion', () => {
 test.describe('Interactions — Covers filter', () => {
   test('clicking a genre chip filters covers', async ({ page }) => {
     await page.goto('/covers')
-    await page.getByTestId('filter-chip-genre-acoustic').click()
+    await page.getByTestId('filter-chip-genre-rock').click()
     // Filter chip becomes active (should have accent style)
-    const chip = page.getByTestId('filter-chip-genre-acoustic')
+    const chip = page.getByTestId('filter-chip-genre-rock')
     await expect(chip).toBeVisible()
     // Clear button appears
     await expect(page.getByTestId('filter-bar-clear')).toBeVisible()
@@ -57,8 +62,8 @@ test.describe('Interactions — Covers filter', () => {
 
   test('search filters covers by title', async ({ page }) => {
     await page.goto('/covers')
-    await page.getByTestId('filter-bar-search').fill('Comfortably')
-    await expect(page.getByTestId('cover-card-1')).toBeVisible()
+    await page.getByTestId('filter-text-title').fill('Bohemian')
+    await expect(page.getByTestId('cover-card-bohemian-rhapsody')).toBeVisible()
   })
 
   test('clearing filter restores all covers', async ({ page }) => {
@@ -71,21 +76,29 @@ test.describe('Interactions — Covers filter', () => {
 })
 
 test.describe('Interactions — Contact form', () => {
-  test('form shows validation errors on empty submit', async ({ page }) => {
+  // The form gates required fields and email format with native HTML5
+  // validation, so an invalid submit never reaches the server / shows no
+  // success state and the offending field reports invalid.
+  test('empty submit is blocked by required-field validation', async ({ page }) => {
     await page.goto('/contact')
     await page.getByTestId('contact-submit').click()
-    await expect(page.getByText('Name is required')).toBeVisible()
-    await expect(page.getByText('Email is required')).toBeVisible()
-    await expect(page.getByText('Message is required')).toBeVisible()
+    await expect(page.getByTestId('contact-form')).toBeVisible()
+    await expect(page.getByTestId('contact-success')).toHaveCount(0)
+    const nameValid = await page.getByTestId('contact-name')
+      .evaluate(el => (el as HTMLInputElement).validity.valid)
+    expect(nameValid).toBe(false)
   })
 
-  test('form shows error for invalid email', async ({ page }) => {
+  test('invalid email is blocked by email validation', async ({ page }) => {
     await page.goto('/contact')
     await page.getByTestId('contact-name').fill('Test User')
     await page.getByTestId('contact-email').fill('not-an-email')
     await page.getByTestId('contact-message').fill('Hello!')
     await page.getByTestId('contact-submit').click()
-    await expect(page.getByText('Invalid email')).toBeVisible()
+    await expect(page.getByTestId('contact-success')).toHaveCount(0)
+    const emailValid = await page.getByTestId('contact-email')
+      .evaluate(el => (el as HTMLInputElement).validity.valid)
+    expect(emailValid).toBe(false)
   })
 
   test('successful submission shows confirmation', async ({ page }) => {
@@ -100,24 +113,52 @@ test.describe('Interactions — Contact form', () => {
 })
 
 test.describe('Interactions — Notification bell', () => {
-  test('bell opens notification dropdown', async ({ page }) => {
+  // The bell is logged-in only and reads per-user notifications from the dev
+  // store, so we seed a real session cookie + one unread notification. Local only.
+  test.describe.configure({ mode: 'serial' })
+  test.skip(!IS_LOCAL, 'requires a seeded local session + .data store')
+
+  const USER = { id: 'e2e-notif-user', email: 'e2e-notif@example.com', role: 'member' as const }
+  const NOTIF: SeedNotification = {
+    id: 'e2e-notif-1',
+    userId: USER.id,
+    type: 'contact_reply',
+    contactRequestId: 'e2e-req-1',
+    title: 'Antoine replied to your message',
+    body: 'Thanks for reaching out — here is my reply.',
+    link: '/preferences/contact-log',
+    read: false,
+    createdAt: new Date().toISOString(),
+  }
+
+  test.beforeEach(async ({ context, baseURL }) => {
+    seedNotification({ ...NOTIF, read: false })
+    const token = await makeSessionToken(USER)
+    await context.addCookies([{ name: SESSION_COOKIE, value: token, url: baseURL!, httpOnly: true, sameSite: 'Lax' }])
+  })
+
+  test.afterAll(() => removeNotification(NOTIF.id))
+
+  test('bell opens the notification panel with the unread notification', async ({ page }) => {
     await page.goto('/')
     const bell = page.getByTestId('notification-bell')
     await expect(bell).toBeVisible()
     await bell.click()
-    await expect(page.getByTestId('notification-dropdown')).toBeVisible()
+    await expect(bell).toHaveAttribute('aria-expanded', 'true')
+    await expect(page.getByTestId(`notification-item-${NOTIF.id}`)).toBeVisible()
   })
 
   test('unread badge is shown when there are unread notifications', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByTestId('notification-badge')).toBeVisible()
+    await expect(page.getByTestId('notification-badge')).toHaveText('1')
   })
 
-  test('clicking a notification marks it read and closes dropdown', async ({ page }) => {
+  test('clicking a notification marks it read and follows its link', async ({ page }) => {
     await page.goto('/')
     await page.getByTestId('notification-bell').click()
-    await page.getByTestId('notification-item-1').click()
-    await expect(page.getByTestId('notification-dropdown')).not.toBeVisible()
+    await page.getByTestId(`notification-item-${NOTIF.id}`).click()
+    await expect(page).toHaveURL(/\/preferences\/contact-log/)
   })
 })
 
